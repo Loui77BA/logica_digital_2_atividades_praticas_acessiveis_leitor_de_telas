@@ -119,11 +119,11 @@ Para compilar e executar o projeto, siga as instruções abaixo:
 
 Limpar os arquivos gerados pela compilação significa excluir os arquivos gerados pela compilação, como os arquivos de simulação, os arquivos de objeto e os executáveis. Isso é útil quando você deseja limpar o diretório e excluir os arquivos gerados.
 
+A seguir será explicado projeto por projeto, com suas descrições, tabelas verdade, mapas de Karnaugh e equações lógicas. Além disso, os circuitos serão descritos e explicados.
+
 ---
 
-## Explicação dos Projetos
-
-### 01_contador_0_a_15
+## 01_contador_0_a_15
 
 Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o funcionamento com display. Qual é a frequência do sinal de saída de último FF. Mostre a frequência com LED.
 
@@ -180,8 +180,6 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 1 0 | 1 | 1 |
 | 1 1 | 0 | 1 |
 
-**Expressões Simplificadas**
-
 ### Equação lógica para \( Q_0 \):
 
 O mapa de Karnaugh indica que \( Q_0 \) alterna entre 0 e 1 independentemente das outras variáveis.
@@ -192,6 +190,8 @@ $$
 Q_0 = \overline{Q_0}
 $$
 
+---
+
 ### Equação lógica para \( Q_1 \):
 
 \( Q_1 \) alterna a cada dois estados (ou seja, muda quando \( Q_0 = 1 \)).
@@ -201,6 +201,8 @@ $$
 $$
 Q_1 = Q_1 \oplus Q_0
 $$
+
+---
 
 ### Equação lógica para \( Q_2 \):
 
@@ -225,3 +227,87 @@ Q_3 = Q_3 \oplus (Q_2 \land Q_1 \land Q_0)
 $$
 
 ---
+
+### Apresentação e Explicação do código Verilog do contador de 4 bits
+
+A estrutura do nosso projeto 01_contador_0_a_15 é composta por:
+
+```bash
+ls
+Makefile  sim  src
+ls sim/
+sim_main.cpp  testbench.v
+ls src/
+contador.v
+```
+
+Onde:
+
+- **`Makefile`**: É o arquivo de compilação e execução do projeto.
+- **`sim/`**: É a pasta que contém os arquivos de simulação do Verilator.
+   - **`sim_main.cpp`**: É o arquivo principal da simulação.
+   - **`testbench.v`**: É o arquivo de testbench do Verilog para a simulação que vai testar o contador de 4 bits.
+- **`src/`**: É a pasta que contém os arquivos de código-fonte do projeto.
+   - **`contador.v`**: É o arquivo Verilog que contém a descrição do circuito.
+
+Vamos começar pelo circuito do contador. O arquivo `contador.v` contém a descrição do circuito:
+
+```verilog
+module contador(
+    input wire clk,    // Clock de entrada
+    input wire rst_n,  // Reset assíncrono ativo em nível baixo
+    output reg [3:0] q // Saída de 4 bits
+);
+
+always @(negedge rst_n or posedge clk) begin
+    if (!rst_n)
+        q <= 4'b0000; // Reset: zera a contagem
+    else
+        q <= q + 1;   // Incrementa a contagem
+end
+
+endmodule
+```
+
+O que o código faz?
+
+Este código define um módulo Verilog chamado `contador`, que implementa um contador de 4 bits com reset assíncrono ativo em nível baixo. 
+
+- **Entradas**:
+  - `clk`: Sinal de clock que sincroniza a contagem.
+  - `rst_n`: Sinal de reset assíncrono ativo em nível baixo. O sufixo `_n` indica que o reset é ativo baixo.
+- **Saída**:
+  - `q`: Registrador de 4 bits que armazena o valor atual da contagem.
+
+```verilog
+always @(negedge rst_n or posedge clk) begin
+    if (!rst_n)
+        q <= 4'b0000; // Reset: zera a contagem
+    else
+        q <= q + 1;   // Incrementa a contagem
+end
+```
+- **Bloco `always` Sensível**:
+  - **`negedge rst_n`**: O bloco é ativado no flanco de descida do `rst_n`, permitindo um reset assíncrono.
+  - **`posedge clk`**: O bloco também é ativado no flanco de subida do `clk`, onde a incrementação ocorre.
+
+- **Lógica Interna**:
+  - **Reset**:
+    - Se `rst_n` está em nível baixo (`0`), a condição `if (!rst_n)` é verdadeira.
+    - `q` é definido como `4'b0000`, zerando o contador imediatamente, independentemente do clock.
+  - **Contagem**:
+    - Se `rst_n` está em nível alto (`1`), a contagem ocorre no flanco de subida do `clk`.
+    - `q <= q + 1;` incrementa o valor do contador em 1.
+- **Operador de Atribuição Não Bloqueante (`<=`)**:
+  - Utilizado para descrever comportamento seqüencial em registradores, garantindo que todas as atribuições ocorram simultaneamente no final do ciclo de clock.
+
+```verilog
+endmodule
+```
+
+- **Fim do Módulo**: Indica o término da definição do módulo `contador`.
+
+Em outras palavras o contador incrementa seu valor em 1 a cada ciclo de clock, desde que o reset não esteja ativo. O reset assíncrono permite que o contador seja zerado imediatamente quando `rst_n` é puxado para baixo, sem esperar pelo próximo flanco de clock.
+
+Como `q` é um registrador de 4 bits, ele conta de `0` a `15`.
+
