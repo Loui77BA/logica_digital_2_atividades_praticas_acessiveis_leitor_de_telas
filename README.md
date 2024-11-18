@@ -182,15 +182,46 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 
 **Expressões Simplificadas**
 
-Equação lógica para \( Q_0 \):
+### Equação lógica para \( Q_0 \):
 
 O mapa de Karnaugh indica que \( Q_0 \) alterna entre 0 e 1 independentemente das outras variáveis.
 
 **Equação simplificada:**
 
-\[
+$$
 Q_0 = \overline{Q_0}
-\]
+$$
+
+### Equação lógica para \( Q_1 \):
+
+\( Q_1 \) alterna a cada dois estados (ou seja, muda quando \( Q_0 = 1 \)).
+
+**Equação simplificada:**
+
+$$
+Q_1 = Q_1 \oplus Q_0
+$$
+
+### Equação lógica para \( Q_2 \):
+
+\( Q_2 \) alterna a cada quatro estados, dependendo dos estados de \( Q_1 \) e \( Q_0 \).
+
+**Equação simplificada:**
+
+$$
+Q_2 = Q_2 \oplus (Q_1 \land Q_0)
+$$
 
 ---
 
+### Equação lógica para \( Q_3 \):
+
+\( Q_3 \) alterna a cada oito estados, dependendo dos estados de \( Q_2 \), \( Q_1 \), e \( Q_0 \).
+
+**Equação simplificada:**
+
+$$
+Q_3 = Q_3 \oplus (Q_2 \land Q_1 \land Q_0)
+$$
+
+---
