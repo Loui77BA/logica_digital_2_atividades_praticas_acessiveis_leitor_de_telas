@@ -270,7 +270,7 @@ $$
 
 ---
 
-### Apresentação e Explicação do código Verilog do contador de 4 bits
+### Apresentação e Explicação do código Verilog
 
 A estrutura do nosso projeto 01_contador_0_a_15 é composta por:
 
