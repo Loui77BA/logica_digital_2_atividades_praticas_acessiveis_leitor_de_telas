@@ -190,7 +190,7 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 14      | 1  | 1  | 1  | 0  |
 | 15      | 1  | 1  | 1  | 1  |
 
-**Mapa de Karnaugh para a saída 𝑄0**
+**Mapa de Karnaugh para a saída $Q_0$**
 
 |     | 0 | 1 |
 |-----|---|---|
@@ -198,7 +198,7 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 1 0 | 0 | 0 |
 | 1 1 | 1 | 1 |
 
-**Mapa de Karnaugh para a saída 𝑄1**
+**Mapa de Karnaugh para a saída $Q_1$**
 
 |     | 0 | 1 |
 |-----|---|---|
@@ -206,7 +206,7 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 1 0 | 1 | 1 |
 | 1 1 | 0 | 1 |
 
-**Mapa de Karnaugh para a saída 𝑄2**
+**Mapa de Karnaugh para a saída $Q_2$**
 
 |     | 0 | 1 |
 |-----|---|---|
@@ -214,7 +214,7 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 1 0 | 1 | 1 |
 | 1 1 | 0 | 1 |
 
-**Mapa de Karnaugh para a saída 𝑄3**
+**Mapa de Karnaugh para a saída $Q_3$**
 
 |     | 0 | 1 |
 |-----|---|---|
@@ -222,9 +222,9 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 | 1 0 | 1 | 1 |
 | 1 1 | 0 | 1 |
 
-### Equação lógica para \( Q_0 \):
+### Equação lógica para $Q_0$
 
-O mapa de Karnaugh indica que \( Q_0 \) alterna entre 0 e 1 independentemente das outras variáveis.
+O mapa de Karnaugh indica que $ Q_0 $ alterna entre 0 e 1 independentemente das outras variáveis.
 
 **Equação simplificada:**
 
@@ -234,9 +234,9 @@ $$
 
 ---
 
-### Equação lógica para \( Q_1 \):
+### Equação lógica para $Q_1$
 
-\( Q_1 \) alterna a cada dois estados (ou seja, muda quando \( Q_0 = 1 \)).
+$ Q_1 $ alterna a cada dois estados (ou seja, muda quando $ Q_0 = 1 $.
 
 **Equação simplificada:**
 
@@ -246,9 +246,9 @@ $$
 
 ---
 
-### Equação lógica para \( Q_2 \):
+### Equação lógica para $Q_2$
 
-\( Q_2 \) alterna a cada quatro estados, dependendo dos estados de \( Q_1 \) e \( Q_0 \).
+$ Q_2 $ alterna a cada quatro estados, dependendo dos estados de $ Q_1 $ e $ Q_0 $.
 
 **Equação simplificada:**
 
@@ -258,9 +258,9 @@ $$
 
 ---
 
-### Equação lógica para \( Q_3 \):
+### Equação lógica para $ Q_3 $
 
-\( Q_3 \) alterna a cada oito estados, dependendo dos estados de \( Q_2 \), \( Q_1 \), e \( Q_0 \).
+$ Q_3 $ alterna a cada oito estados, dependendo dos estados de $ Q_2 $, $ Q_1 $ e $ Q_0 $.
 
 **Equação simplificada:**
 
@@ -283,7 +283,7 @@ ls src/
 contador.v
 ```
 
-Vamos começar pelo circuito do contador. O arquivo `contador.v` contém a descrição do circuito:
+Arquivo `contador.v`:
 
 ```verilog
 module contador(
@@ -301,48 +301,6 @@ end
 
 endmodule
 ```
-
-**O que o código faz?**
-
-Este código define um módulo Verilog chamado `contador`, que implementa um contador de 4 bits com reset assíncrono ativo em nível baixo. 
-
-- **Entradas**:
-  - `clk`: Sinal de clock que sincroniza a contagem.
-  - `rst_n`: Sinal de reset assíncrono ativo em nível baixo. O sufixo `_n` indica que o reset é ativo baixo.
-- **Saída**:
-  - `q`: Registrador de 4 bits que armazena o valor atual da contagem.
-
-```verilog
-always @(negedge rst_n or posedge clk) begin
-    if (!rst_n)
-        q <= 4'b0000; // Reset: zera a contagem
-    else
-        q <= q + 1;   // Incrementa a contagem
-end
-```
-- **Bloco `always` Sensível**:
-  - **`negedge rst_n`**: O bloco é ativado no flanco de descida do `rst_n`, permitindo um reset assíncrono.
-  - **`posedge clk`**: O bloco também é ativado no flanco de subida do `clk`, onde a incrementação ocorre.
-
-- **Lógica Interna**:
-  - **Reset**:
-    - Se `rst_n` está em nível baixo (`0`), a condição `if (!rst_n)` é verdadeira.
-    - `q` é definido como `4'b0000`, zerando o contador imediatamente, independentemente do clock.
-  - **Contagem**:
-    - Se `rst_n` está em nível alto (`1`), a contagem ocorre no flanco de subida do `clk`.
-    - `q <= q + 1;` incrementa o valor do contador em 1.
-- **Operador de Atribuição Não Bloqueante (`<=`)**:
-  - Utilizado para descrever comportamento seqüencial em registradores, garantindo que todas as atribuições ocorram simultaneamente no final do ciclo de clock.
-
-```verilog
-endmodule
-```
-
-- **Fim do Módulo**: Indica o término da definição do módulo `contador`.
-
-Em outras palavras o contador incrementa seu valor em 1 a cada ciclo de clock, desde que o reset não esteja ativo. O reset assíncrono permite que o contador seja zerado imediatamente quando `rst_n` é puxado para baixo, sem esperar pelo próximo flanco de clock.
-
-Como `q` é um registrador de 4 bits, ele conta de `0` a `15`.
 
 Arquivo `sim/testbench.v`:
 
@@ -385,97 +343,6 @@ module testbench;
     end
 endmodule
 ```
-
-**O que o código faz?**
-
-```verilog
-`timescale 1ns/1ps
-```
-
-Define a escala de tempo para a simulação, ela é um parâmetro crucial que define como o tempo será representado e calculado durante a execução da simulação. Nesse caso, a escala de tempo é definida por dois valores: `1ns` e `1ps`. 
-
-O primeiro valor, `1ns`, especifica a unidade de tempo utilizada nas simulações, ou seja, os eventos e processos serão medidos em nanosegundos. 
-
-O segundo valor, `1ps`, determina a precisão dos cálculos de tempo. Isso significa que, embora a unidade de tempo seja o nanosegundo, os cálculos podem ser realizados com uma precisão de até 1 picosegundo.
-
-Em outras palavras, os tempos na simulação são expressos em nanosegundos, mas com uma resolução fina que permite distinguir eventos separados por apenas um picosegundo. 
-
-```verilog
-module testbench;
-```
-
-Define um módulo de teste chamado `testbench`. Este módulo é responsável por instanciar o módulo `contador` e gerar os sinais de clock e reset necessários para testar o contador.
-
-```verilog
-    reg clk;
-    reg rst_n;
-```
-
-Declara dois sinais do tipo `reg` (registrador):
-- **`clk`**: será usado como o sinal de clock na simulação.
-- **`rst_n`**: é um sinal de reset ativo baixo (o reset é ativado quando o sinal está em nível lógico `0`).
-
-```verilog
-    wire [3:0] q;
-```
-
-Declara o sinal `q` como um vetor de 4 bits (`[3:0]`) do tipo `wire` (fio). Este sinal será usado para capturar a saída do módulo `contador`.
-
-```verilog
-    contador uut (
-        .clk(clk),
-        .rst_n(rst_n),
-        .q(q)
-    );
-```
-
-Instancia o módulo chamado `contador`, que será testado. A instância é chamada de **`uut`** (abreviação de *Unit Under Test*), conectando seus pinos aos sinais definidos no testbench:
-- **`clk`**: conectado ao sinal de clock do testbench.
-- **`rst_n`**: conectado ao sinal de reset.
-- **`q`**: captura a saída do módulo `contador`.
-
-```verilog
-    always #5 clk = ~clk;
-```
-Define um bloco `always` que inverte o sinal `clk` a cada 5 ns. Isso cria um clock com um período de 10 ns (5 ns para o estado alto e 5 ns para o estado baixo), correspondente a uma frequência de 100 MHz.
-
-```verilog
-    initial begin
-        // Inicializa os sinais
-        clk = 0;
-        rst_n = 0;
-
-        // Aplica o reset
-        #10;
-        rst_n = 1;
-
-        // Executa a simulação por 200 ns
-        #200;
-        $finish;
-    end
-```
-Bloco inicial para definir o comportamento da simulação:
-1. **`clk = 0;` e `rst_n = 0;`**: Inicializa os sinais `clk` (clock) como 0 e `rst_n` (reset) como ativo (nível baixo).
-2. **`#10;`**: Aguarda 10 ns.
-3. **`rst_n = 1;`**: Desativa o reset (coloca o sinal em nível lógico alto).
-4. **`#200;`**: Aguarda 200 ns para simular o comportamento do circuito.
-5. **`$finish;`**: Encerra a simulação.
-
-```verilog
-    initial begin
-        $monitor("Tempo: %0t | Contagem: %b", $time, q);
-    end
-```
-
-Outro bloco inicial que utiliza o comando `$monitor` para exibir os valores durante a simulação:
-- **`"Tempo: %0t | Contagem: %b"`**: Formato da mensagem a ser exibida. Mostra o tempo atual da simulação (`%0t`) e o valor do sinal `q` em formato binário (`%b`).
-- **`$time`**: Representa o tempo simulado atual.
-- O `$monitor` atualiza automaticamente sempre que o tempo ou o valor de `q` muda.
-
-```verilog
-endmodule
-```
-Finaliza a definição do módulo de teste `testbench`.
 
 Arquivo `sim/sim_main.cpp`:
 
@@ -532,100 +399,198 @@ int main(int argc, char** argv, char** env) {
 }
 ```
 
-**O que o código faz?**
+## 02_contador_0_a_13
 
-```cpp
-#include "Vcontador.h"
-#include "verilated.h"
-#include <iostream>
-#include <iomanip>
+Elabore um contador assíncrono de 0 até 13 com base no contador anterior. Mostre no display. Qual é a frequência do sinal de saída do ultimo FF. Mostre a frequência com LED.
+
+**Modificação do contador**
+
+- O contador deve resetar ao alcançar o valor 13 (binário: 1101).
+- Isso requer lógica adicional para detectar quando: $$ Q_3 Q_2 Q_1 Q_0 = 1101 $$
+- Se o resultado for 1101, o contador deve ser resetado para 0.
+
+**Conexões de Flip-Flops (FFs) JK**
+
+Continuamos configurando $ J = K = 1 $ para todos os flip-flops com cada flip-flop recebendo a saída do flip-flop alternando na metade da frequência do flip-flop anterior.
+
+**Configuração da Frequência do último Flip-Flop**
+
+A frequência de saída do último Flip-Flop ($ Q_3 $) ainda será a frequência de entrada dividida pelo número de estados do contador. Neste caso:
+
+- **Total de estados:** 14 (de 0 a 13).
+- **Frequência de entrada $( f_{in} )$:** $f_{in} \div 14$
+
+**Lógica para o Reset**
+
+Para resetar o contador quando ele atingir 13, usamos uma lógica **AND** para detectar o estado
+$ Q_3 Q_2 Q_1 Q_0 = 1101 $ e aplicar o reset.
+
+A lógica será:
+
+$
+\text{Reset} = Q_3 \land Q_2 \land \overline{Q_1} \land Q_0
+$
+
+Essa saída será conectada às entradas de reset assíncrono dos Flip-Flops.
+
+**Tabela verdade**
+
+| Entrada Decimal | Q3 | Q2 | Q1 | Q0 |
+|-----------------|----|----|----|----|
+| 0               | 0  | 0  | 0  | 0  |
+| 1               | 0  | 0  | 0  | 1  |
+| 2               | 0  | 0  | 1  | 0  |
+| 3               | 0  | 0  | 1  | 1  |
+| 4               | 0  | 1  | 0  | 0  |
+| 5               | 0  | 1  | 0  | 1  |
+| 6               | 0  | 1  | 1  | 0  |
+| 7               | 0  | 1  | 1  | 1  |
+| 8               | 1  | 0  | 0  | 0  |
+| 9               | 1  | 0  | 0  | 1  |
+| 10              | 1  | 0  | 1  | 0  |
+| 11              | 1  | 0  | 1  | 1  |
+| 12              | 1  | 1  | 0  | 0  |
+| 13              | 1  | 1  | 0  | 1  |
+
+A partir do estado 13, o contador retorna para 0.
+
+**Configuração do LED para o Último Flip-Flop**
+
+O LED conectado à saída $ Q_3 $ piscará com frequência $ f_{out} = f_{in} \div 14 $.
+
+**Mapa de Karnaugh - Q0 (0 a 13)**
+
+|     | 0 | 1 |
+|-----|---|---|
+| 0 0 | 0 | 1 |
+| 1 0 | 0 | 0 |
+| 1 1 | 1 | 1 |
+
+**Mapa de Karnaugh -  Q1 (0 a 13)**
+
+|     | 0 | 1 |
+|-----|---|---|
+| 0 0 | 0 | 0 |
+| 1 0 | 1 | 1 |
+| 1 1 | 0 | 1 |
+
+**Mapa de Karnaugh -  Q2 (0 a 13)**
+
+|     | 0 | 1 |
+|-----|---|---|
+| 0 0 | 0 | 0 |
+| 1 0 | 1 | 1 |
+| 1 1 | 0 | 1 |
+
+**Mapa de Karnaugh -  Q3 (0 a 13)**
+
+|     | 0 | 1 |
+|-----|---|---|
+| 0 0 | 0 | 0 |
+| 1 0 | 1 | 1 |
+| 1 1 | 0 | 1 |
+
+### Equação lógica para $ Q_0 $
+$ Q_0 $ alterna entre 0 e 1 independentemente de outras variáveis.
+
+**Equação simplificada:**
+
+$$
+Q_0 = \overline{Q_0}
+$$
+
+---
+
+### Equação lógica para $ Q_1 $
+
+$ Q_1 $ alterna a cada dois estados dependendo de $ Q_0 $. Ou seja, muda quando $ Q_0 = 1 $.
+
+**Equação simplificada:**
+
+$$
+Q_1 = Q_1 \oplus Q_0
+$$
+
+---
+
+### Equação lógica para $ Q_2 $
+
+$ Q_2 $ alterna a cada quatro estados, dependendo de $ Q_1 $ e $ Q_0 $. Ou seja, muda quando $ Q_1 = 1 $ e $ Q_0 = 0 $.
+
+**Equação simplificada:**
+
+$$
+Q_2 = Q_2 \oplus (Q_1 \land Q_0)
+$$
+
+---
+
+### Equação lógica para $ Q_3 $
+
+$ Q_3 $ alterna a cada oito estados, dependendo de $ Q_2 $, $ Q_1 $ e $ Q_0 $. Ou seja, muda quando $ Q_2 = 1 $, $ Q_1 = 1 $ e $ Q_0 = 0 $.
+
+**Equação simplificada:**
+
+$$
+Q_3 = Q_3 \oplus (Q_2 \land Q_1 \land Q_0)
+$$
+
+---
+
+### Equação lógica para o Reset
+
+O contador deve resetar ao alcançar 13 ($Q_3 Q_2 Q_1 Q_0 = 1101$). A lógica para o reset será ativada quando:
+
+$$
+{Reset} = Q_3 \land Q_2 \land \overline{Q_1} \land Q_0
+$$
+
+Essa saída será conectada às entradas de reset assíncrono dos Flip-Flops JK para reiniciar o contador no estado 0.
+
+---
+
+### Configuração do LED para $ Q_3 $
+
+O LED conectado à saída $ Q_3 $ piscará com frequência:
+
+$$
+f_{out} = \frac{f_{in}}{14}
+$$
+
+onde $ f_{in} $ é a frequência do clock de entrada.
+
+### Apresentação e Explicação do código Verilog
+
+A estrutura do nosso projeto 02_contador_0_a_13 é composta por:
+
+```bash
+ls
+Makefile  sim  src
+ls sim/
+sim_main_0_13.cpp testbench_0_13.v
+ls src/
+contador_0_13.v
 ```
-- **`#include "Vcontador.h"`**: Importa o cabeçalho gerado automaticamente pelo Verilator para o módulo Verilog chamado `contador`. Esse cabeçalho define a interface do módulo no ambiente C++.
-- **`#include "verilated.h"`**: Importa a biblioteca principal do Verilator, necessária para simular e gerenciar sinais de módulos Verilog.
-- **`#include <iostream>` e `#include <iomanip>`**: Incluem bibliotecas padrão C++ para entrada/saída (para imprimir na tela) e formatação de texto (para ajustar espaçamentos e precisão da saída).
+Arquivo `contador_0_13.v`:
 
-```cpp
-int main(int argc, char** argv, char** env) {
-    Verilated::commandArgs(argc, argv);
+```verilog
+module contador_0_13 (
+    input wire clk,      // Clock de entrada
+    input wire rst_n,    // Reset assíncrono ativo em nível baixo
+    output reg [3:0] q   // Saída de 4 bits
+);
+    wire reset; // Sinal para resetar o contador
+
+    // Lógica para resetar quando q == 13 (1101)
+    assign reset = (q == 4'b1101);
+
+    always @(negedge rst_n or posedge clk) begin
+        if (!rst_n)
+            q <= 4'b0000;   // Reset: zera a contagem
+        else if (reset)
+            q <= 4'b0000;   // Reset quando atingir 13
+        else
+            q <= q + 1;     // Incrementa a contagem
+    end
+endmodule
 ```
-- **`int main(int argc, char** argv, char** env)`**: Define a função principal que será executada quando o programa rodar.
-- **`Verilated::commandArgs(argc, argv)`**: Passa os argumentos da linha de comando para o Verilator, caso necessário para configurações de simulação.
-
-```cpp
-    Vcontador* top = new Vcontador;
-```
-- Instancia um objeto `Vcontador`, representando o módulo Verilog `contador` no ambiente C++. A variável `top` é um ponteiro para a simulação.
-
-```cpp
-    top->clk = 0;
-    top->rst_n = 0;
-```
-- Inicializa os sinais do módulo:
-  - **`top->clk = 0;`**: Inicializa o sinal de clock em 0.
-  - **`top->rst_n = 0;`**: Ativa o reset (ativo baixo).
-
-```cpp
-    const double clock_frequency = 100e6; // Frequência do clock (100 MHz)
-    const int max_cycles = 256; // Número de ciclos a simular
-```
-- **`clock_frequency`**: Define a frequência do clock em 100 MHz.
-- **`max_cycles`**: Define o número máximo de ciclos a simular (256 ciclos).
-
-```cpp
-    top->eval();
-    top->rst_n = 1;
-```
-- **`top->eval();`**: Avalia o módulo com base no estado atual dos sinais. É necessário para que o Verilator processe as alterações nos sinais.
-- **`top->rst_n = 1;`**: Libera o reset (o desativa).
-
-```cpp
-    std::cout << "Ciclo\tContagem\tPinos (Q3 Q2 Q1 Q0)\tFreq (Q3)\n";
-    std::cout << "----------------------------------------------------\n";
-```
-- Exibe um cabeçalho para os dados de saída:
-  - **`Ciclo`**: Número do ciclo simulado.
-  - **`Contagem`**: Valor atual do contador.
-  - **`Pinos (Q3 Q2 Q1 Q0)`**: Estados individuais dos bits do sinal de saída `q`.
-  - **`Freq (Q3)`**: Frequência calculada do bit mais significativo (`Q3`).
-
-```cpp
-    for (int cycle = 0; cycle < max_cycles; ++cycle) {
-        top->clk = !top->clk;
-        top->eval();
-
-        if (top->clk) {
-            double q3_frequency = clock_frequency / 16;
-
-            std::cout << std::setw(5) << cycle / 2
-                      << "\t" << std::setw(8) << static_cast<int>(top->q)
-                      << "\t\t" << (int)((top->q >> 3) & 1) << " "
-                      << (int)((top->q >> 2) & 1) << " "
-                      << (int)((top->q >> 1) & 1) << " "
-                      << (int)(top->q & 1)
-                      << "\t\t" << q3_frequency / 1e6 << " MHz\n";
-        }
-    }
-```
-**Linha por Linha**:
-
-1. **`for (int cycle = 0; cycle < max_cycles; ++cycle)`**: Itera pelos ciclos de simulação até o máximo especificado (`max_cycles`).
-2. **`top->clk = !top->clk;`**: Alterna o estado do clock (de 0 para 1, ou de 1 para 0).
-3. **`top->eval();`**: Avalia o módulo após a mudança no clock.
-4. **`if (top->clk)`**: Processa apenas no flanco de subida do clock (`clk = 1`).
-5. **`double q3_frequency = clock_frequency / 16;`**: Calcula a frequência do bit `Q3` como a frequência do clock dividida por 16 (assumindo que o contador é um divisor de frequência).
-6. **`std::cout`**: Exibe os dados formatados:
-   - **`cycle / 2`**: Número do ciclo completo (considerando ciclos de clock alternados).
-   - **`static_cast<int>(top->q)`**: Converte a saída `q` do módulo para um inteiro para exibição.
-   - **`(int)((top->q >> n) & 1)`**: Calcula os valores dos bits individuais de `q` (n varia de 0 a 3, representando os bits Q0, Q1, Q2 e Q3).
-   - **`q3_frequency / 1e6`**: Exibe a frequência de `Q3` em MHz.
-
-
-```cpp
-    delete top;
-```
-- Libera a memória alocada para o objeto `Vcontador`.
-
-```cpp
-    return 0;
-```
-- Finaliza o programa com código de retorno 0, indicando execução bem-sucedida.
