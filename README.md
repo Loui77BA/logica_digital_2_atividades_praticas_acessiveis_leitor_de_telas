@@ -224,7 +224,7 @@ Elabore um Contador assíncrono de 0 até 15, pode usar FFs JK ou D. Mostre o fu
 
 ### Equação lógica para $Q_0$
 
-O mapa de Karnaugh indica que $ Q_0 $ alterna entre 0 e 1 independentemente das outras variáveis.
+O mapa de Karnaugh indica que $Q_0$ alterna entre 0 e 1 independentemente das outras variáveis.
 
 **Equação simplificada:**
 
@@ -236,7 +236,7 @@ $$
 
 ### Equação lógica para $Q_1$
 
-$ Q_1 $ alterna a cada dois estados (ou seja, muda quando $ Q_0 = 1 $.
+$Q_1$ alterna a cada dois estados (ou seja, muda quando $Q_0 = 1$.
 
 **Equação simplificada:**
 
@@ -248,7 +248,7 @@ $$
 
 ### Equação lógica para $Q_2$
 
-$ Q_2 $ alterna a cada quatro estados, dependendo dos estados de $ Q_1 $ e $ Q_0 $.
+$Q_2$ alterna a cada quatro estados, dependendo dos estados de $Q_1$ e $Q_0$.
 
 **Equação simplificada:**
 
@@ -258,9 +258,9 @@ $$
 
 ---
 
-### Equação lógica para $ Q_3 $
+### Equação lógica para $Q_3$
 
-$ Q_3 $ alterna a cada oito estados, dependendo dos estados de $ Q_2 $, $ Q_1 $ e $ Q_0 $.
+$Q_3$ alterna a cada oito estados, dependendo dos estados de $Q_2$, $Q_1$ e $Q_0$.
 
 **Equação simplificada:**
 
@@ -411,11 +411,11 @@ Elabore um contador assíncrono de 0 até 13 com base no contador anterior. Most
 
 **Conexões de Flip-Flops (FFs) JK**
 
-Continuamos configurando $ J = K = 1 $ para todos os flip-flops com cada flip-flop recebendo a saída do flip-flop alternando na metade da frequência do flip-flop anterior.
+Continuamos configurando $J = K = 1$ para todos os flip-flops com cada flip-flop recebendo a saída do flip-flop alternando na metade da frequência do flip-flop anterior.
 
 **Configuração da Frequência do último Flip-Flop**
 
-A frequência de saída do último Flip-Flop ($ Q_3 $) ainda será a frequência de entrada dividida pelo número de estados do contador. Neste caso:
+A frequência de saída do último Flip-Flop ($Q_3$) ainda será a frequência de entrada dividida pelo número de estados do contador. Neste caso:
 
 - **Total de estados:** 14 (de 0 a 13).
 - **Frequência de entrada $( f_{in} )$:** $f_{in} \div 14$
@@ -423,13 +423,11 @@ A frequência de saída do último Flip-Flop ($ Q_3 $) ainda será a frequência
 **Lógica para o Reset**
 
 Para resetar o contador quando ele atingir 13, usamos uma lógica **AND** para detectar o estado
-$ Q_3 Q_2 Q_1 Q_0 = 1101 $ e aplicar o reset.
+$Q_3 Q_2 Q_1 Q_0 = 1101$ e aplicar o reset.
 
 A lógica será:
 
-$
-\text{Reset} = Q_3 \land Q_2 \land \overline{Q_1} \land Q_0
-$
+$\text{Reset} = Q_3 \land Q_2 \land \overline{Q_1} \land Q_0$
 
 Essa saída será conectada às entradas de reset assíncrono dos Flip-Flops.
 
@@ -456,7 +454,7 @@ A partir do estado 13, o contador retorna para 0.
 
 **Configuração do LED para o Último Flip-Flop**
 
-O LED conectado à saída $ Q_3 $ piscará com frequência $ f_{out} = f_{in} \div 14 $.
+O LED conectado à saída $Q_3$ piscará com frequência $f_{out} = f_{in} \div 14$.
 
 **Mapa de Karnaugh - Q0 (0 a 13)**
 
@@ -490,8 +488,8 @@ O LED conectado à saída $ Q_3 $ piscará com frequência $ f_{out} = f_{in} \d
 | 1 0 | 1 | 1 |
 | 1 1 | 0 | 1 |
 
-### Equação lógica para $ Q_0 $
-$ Q_0 $ alterna entre 0 e 1 independentemente de outras variáveis.
+### Equação lógica para $Q_0$
+$Q_0$ alterna entre 0 e 1 independentemente de outras variáveis.
 
 **Equação simplificada:**
 
@@ -501,9 +499,9 @@ $$
 
 ---
 
-### Equação lógica para $ Q_1 $
+### Equação lógica para $Q_1$
 
-$ Q_1 $ alterna a cada dois estados dependendo de $ Q_0 $. Ou seja, muda quando $ Q_0 = 1 $.
+$Q_1$ alterna a cada dois estados dependendo de $Q_0$. Ou seja, muda quando $Q_0 = 1$.
 
 **Equação simplificada:**
 
@@ -513,9 +511,9 @@ $$
 
 ---
 
-### Equação lógica para $ Q_2 $
+### Equação lógica para $Q_2$
 
-$ Q_2 $ alterna a cada quatro estados, dependendo de $ Q_1 $ e $ Q_0 $. Ou seja, muda quando $ Q_1 = 1 $ e $ Q_0 = 0 $.
+$Q_2$ alterna a cada quatro estados, dependendo de $Q_1$ e $Q_0$. Ou seja, muda quando $Q_1 = 1$ e $Q_0 = 0$.
 
 **Equação simplificada:**
 
@@ -525,9 +523,9 @@ $$
 
 ---
 
-### Equação lógica para $ Q_3 $
+### Equação lógica para $Q_3$
 
-$ Q_3 $ alterna a cada oito estados, dependendo de $ Q_2 $, $ Q_1 $ e $ Q_0 $. Ou seja, muda quando $ Q_2 = 1 $, $ Q_1 = 1 $ e $ Q_0 = 0 $.
+$Q_3$ alterna a cada oito estados, dependendo de $Q_2$, $Q_1$ e $Q_0$. Ou seja, muda quando $Q_2 = 1$, $Q_1 = 1$ e $Q_0 = 0$.
 
 **Equação simplificada:**
 
@@ -549,15 +547,15 @@ Essa saída será conectada às entradas de reset assíncrono dos Flip-Flops JK 
 
 ---
 
-### Configuração do LED para $ Q_3 $
+### Configuração do LED para $Q_3$
 
-O LED conectado à saída $ Q_3 $ piscará com frequência:
+O LED conectado à saída $Q_3$ piscará com frequência:
 
 $$
 f_{out} = \frac{f_{in}}{14}
 $$
 
-onde $ f_{in} $ é a frequência do clock de entrada.
+onde $f_{in}$ é a frequência do clock de entrada.
 
 ### Apresentação e Explicação do código Verilog
 
