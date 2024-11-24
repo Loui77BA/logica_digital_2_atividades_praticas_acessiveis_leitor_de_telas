@@ -2,6 +2,32 @@
 
 Este repositório contém implementações em **Verilog** e simulações realizadas com o **Verilator**. O objetivo deste projeto é fornecer exemplos acessíveis e práticos para estudo e aplicação de conceitos fundamentais de lógica digital. Optamos por **Verilog e Verilator** em vez de ferramentas como Logisim para garantir maior acessibilidade a pessoas cegas que utilizam leitores de tela como o **NVDA**, o **Orca**, **VoiceOver** e outros.
 
+## Sumário
+
+- [Objetivos](#objetivos)
+- [Pré-requisitos](#pré-requisitos)
+- [Configuração no Ubuntu 24.04 LTS](#configuração-no-ubuntu-2404-lts)
+- [Estrutura do Repositório](#estrutura-do-repositório)
+- [Compilação e Execução](#compilação-e-execução)
+  - [Estrutura de Pastas](#estrutura-de-pastas)
+  - [Compilando e Executando o Projeto](#compilando-e-executando-o-projeto)
+- [Projetos](#projetos)
+  - [01_contador_0_a_15](#01_contador_0_a_15)
+  - [02_contador_0_a_13](#02_contador_0_a_13)
+  - [03_contador_sync](#03_contador_sync)
+  - [04_acender_led](#04_acender_led)
+  - [05_led_com_dois_push_bottom](#05_led_com_dois_push_bottom)
+  - [06_led_liga_com_um_dos_push_bottom_pressionado](#06_led_liga_com_um_dos_push_bottom_pressionado)
+  - [07_led_quatro_pulsos](#07_led_quatro_pulsos)
+  - [08_barreira_luminosa](#08_barreira_luminosa)
+  - [09_barreira_min_max_10_20_cm](#09_barreira_min_max_10_20_cm)
+  - [10_led_pisca_4_segundos](#10_led_pisca_4_segundos)
+  - [11_led_pisca_3_segundos_valor_de_contagem_diferente](#11_led_pisca_3_segundos_valor_de_contagem_diferente)
+  - [12_led_pisca_3_segundos_valor_divisor_de_frequencia_de_relogio_diferente](#12_led_pisca_3_segundos_valor_divisor_de_frequencia_de_relogio_diferente)
+  - [13_led_pisca_5_segundos_valor_contagem_diferente](#13_led_pisca_5_segundos_valor_contagem_diferente)
+  - [14_led_pisca_5_segundos_valor_divisor_de_frequencia_de_relogio_diferente](#14_led_pisca_5_segundos_valor_divisor_de_frequencia_de_relogio_diferente)
+- [Conclusão](#conclusão)
+
 ## Objetivos
 
 - Demonstrar conceitos de lógica digital por meio de implementações práticas.
@@ -302,6 +328,14 @@ end
 endmodule
 ```
 
+**O que o código faz?**
+
+O código implementa um contador binário de 4 bits com um reset assíncrono ativo em nível baixo. Este módulo possui dois sinais de entrada: `clk`, que é o clock de entrada, e `rst_n`, que é o sinal de reset assíncrono ativo em nível baixo. A saída é um registrador de 4 bits `q`, que representa o valor atual do contador.
+
+Dentro do módulo, há um bloco `always` que é sensível à borda negativa de `rst_n` e à borda positiva de `clk`. Isso significa que o bloco é executado sempre que o sinal de reset transita de alto para baixo ou quando o clock transita de baixo para alto. 
+
+No bloco `always`, há uma condição que verifica o estado de `rst_n`. Se `rst_n` estiver em nível baixo (indicando um reset ativo), o contador `q` é resetado para zero (`4'b0000`). Se `rst_n` estiver em nível alto, o contador incrementa seu valor em 1 a cada borda positiva do clock (`q <= q + 1`).
+
 Arquivo `sim/testbench.v`:
 
 ```verilog
@@ -343,6 +377,28 @@ module testbench;
     end
 endmodule
 ```
+**O que o código faz?**
+
+O código  é usado para simular o comportamento do módulo `contador`. O objetivo deste testbench é verificar e observar o funcionamento do contador binário de 4 bits implementado no módulo `contador`.
+
+Dentro do testbench, são declarados os seguintes sinais:
+
+- `reg clk;` : sinal de clock que será gerado dentro do testbench.
+- `reg rst_n;` : sinal de reset assíncrono ativo em nível baixo.
+- `wire [3:0] q;` : sinal de saída de 4 bits que recebe o valor do contador.
+
+O módulo `contador` é instanciado com o nome `uut` (Unit Under Test). Ele conecta os sinais definidos no testbench (`clk`, `rst_n` e `q`) às portas do módulo `contador`.
+
+O bloco `always` gera um sinal de clock periódico, alternando o valor de `clk` a cada 5 nanosegundos. Isso cria um clock com período total de 10 nanosegundos (frequência de 100 MHz). O clock alterna entre `0` e `1` de forma contínua.
+
+O bloco `initial` descreve uma sequência de estímulos para o teste:
+1. Inicializa os sinais: `clk` é iniciado em `0` e `rst_n` (reset) em `0`.
+2. Aplica o reset: após 10 nanosegundos (`#10`), `rst_n` é levado a `1`, desativando o reset.
+3. Simula por 200 nanosegundos: o testbench roda a simulação por 200 nanosegundos antes de finalizar a execução com `$finish`.
+
+Outro bloco `initial` utiliza `$monitor` para exibir os resultados em tempo real durante a simulação. A cada alteração no tempo ou no valor de `q`, o testbench imprime o tempo atual (`$time`) e o valor do contador (`q`), em binário.
+
+O propósito deste código é simular o funcionamento do contador e garantir que ele reseta corretamente quando `rst_n` está baixo e incrementa na borda positiva do clock quando o reset está desativado (`rst_n` alto).
 
 Arquivo `sim/sim_main.cpp`:
 
@@ -398,6 +454,36 @@ int main(int argc, char** argv, char** env) {
     return 0;
 }
 ```
+
+**O que o código faz?**
+
+Este é um arquivo chamado `sim_main.cpp` que serve como programa principal para simular o comportamento do módulo Verilog `contador`, que foi previamente convertido para um modelo em C++ pela ferramenta Verilator.
+
+O programa realiza a simulação de 256 ciclos do contador, alternando o sinal de clock, avaliando o comportamento do módulo e exibindo os resultados detalhados em um formato tabular.
+
+- O código utiliza a classe gerada `Vcontador`, que representa o módulo Verilog `contador`.
+- Inicializa o objeto `top` como uma instância do módulo.
+- Define valores iniciais para os sinais de clock (`clk`) e reset (`rst_n`) como `0`.
+- **Frequência do clock:** definida como `100 MHz` (`100e6`) para simular um sistema com este clock.
+- **Número máximo de ciclos:** definido como `256`, o que controla a duração da simulação.
+- **Reset:** O sinal de reset (`rst_n`) é mantido em nível baixo no início e o método `eval()` é chamado para avaliar o estado inicial do circuito. Em seguida, o reset é desativado (`rst_n = 1`), permitindo que o contador funcione normalmente.
+
+O programa imprime um cabeçalho formatado para a saída da simulação, que inclui:
+
+- O número do ciclo.
+- O valor do contador (`q`) em decimal.
+- O estado dos pinos de saída (`q3`, `q2`, `q1`, `q0`) representados individualmente.
+- A frequência do pino mais significativo (`q3`), calculada com base na frequência do clock.
+
+O laço `for` realiza a simulação para `max_cycles` ciclos. A cada iteração:
+
+1. **Alterna o clock:** O clock (`clk`) é invertido a cada ciclo.
+2. **Avalia o circuito:** O método `eval()` é chamado para calcular o novo estado do módulo.
+3. **Exibe resultados:** No flanco de subida do clock (`if (top->clk)`), os valores do contador e outros dados são exibidos.
+
+A frequência do pino `q3` é calculada como um submúltiplo da frequência do clock (dividida por 16, porque `q3` representa o bit mais significativo de um contador de 4 bits).
+
+Após completar os ciclos de simulação, o objeto `top` é destruído para liberar os recursos alocados.
 
 ## 02_contador_0_a_13
 
@@ -592,3 +678,171 @@ module contador_0_13 (
     end
 endmodule
 ```
+
+**O que o código faz?**
+
+O módulo `contador_0_13` é projetado para contar de 0 a 13 de forma contínua,
+
+O módulo possui os seguintes sinais:
+- **Entradas:**
+  - `clk`: Sinal de clock que sincroniza o incremento do contador.
+  - `rst_n`: Sinal de reset assíncrono ativo em nível baixo que zera o contador.
+- **Saída:**
+  - `q`: Registrador de 4 bits que mantém o valor atual do contador.
+
+Um sinal auxiliar chamado `reset` é criado para determinar se o contador deve ser reiniciado automaticamente. Ele é ativado quando o valor atual do contador (`q`) atinge 13.
+
+O comportamento do contador é implementado em um bloco sensível à borda negativa de `rst_n` (reset assíncrono) ou à borda positiva do clock (`clk`):
+
+1. **Reset Assíncrono:** Se `rst_n` estiver em nível baixo, o contador é zerado imediatamente.
+2. **Reset Condicional:** Se o contador alcançar o valor 13 (`reset` for verdadeiro), ele é reiniciado para 0.
+3. **Incremento:** Caso nenhuma das condições anteriores seja verdadeira, o contador incrementa seu valor em 1 na próxima borda positiva do clock.
+
+Arquivo `sim/testbench_0_13.v`:
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench_0_13;
+    reg clk;
+    reg rst_n;
+    wire [3:0] q;
+
+    // Instancia o módulo do contador
+    contador_0_13 uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .q(q)
+    );
+
+    // Gera o clock com período de 10 ns (100 MHz)
+    always #5 clk = ~clk;
+
+    initial begin
+        // Inicializa os sinais
+        clk = 0;
+        rst_n = 0;
+
+        // Aplica o reset
+        #10;
+        rst_n = 1;
+
+        // Executa a simulação por 300 ns
+        #300;
+        $finish;
+    end
+
+    // Monitora a saída
+    initial begin
+        $monitor("Tempo: %0t | Contagem: %b", $time, q);
+    end
+endmodule
+```
+
+**O que o código faz?**
+
+O módulo se chama `testbench_0_13`. Ele utiliza o módulo `contador_0_13` como Unidade Sob Teste (Unit Under Test, UUT) e fornece sinais de entrada (`clk` e `rst_n`) para testar seu comportamento. O testbench observa a saída (`q`) e imprime os resultados no console durante a simulação.
+
+Os sinais declarados são:
+
+- **`clk`**: Registrador para o clock, que controla a sincronização do contador.
+- **`rst_n`**: Registrador para o reset assíncrono ativo em nível baixo.
+- **`q`**: Fio (wire) que conecta a saída do módulo `contador_0_13`.
+
+O módulo `contador_0_13` é instanciado com o nome `uut` (Unit Under Test), conectando os sinais do testbench às portas do módulo.
+
+Um bloco `always` gera um sinal de clock periódico alternando o valor de `clk` a cada 5 nanosegundos. Isso cria um clock com período total de 10 nanosegundos (frequência de 100 MHz).
+
+Um bloco `initial` descreve a sequência de estímulos para a simulação:
+
+1. **Inicialização dos sinais:** O clock (`clk`) começa em `0` e o reset (`rst_n`) é ativado (`0`).
+2. **Desativação do reset:** Após 10 nanosegundos (`#10`), o reset é desativado (`rst_n = 1`), permitindo que o contador comece a funcionar.
+3. **Simulação por 300 nanosegundos:** A simulação continua por 300 nanosegundos antes de finalizar com `$finish`.
+
+Outro bloco `initial` utiliza `$monitor` para exibir o tempo simulado (`$time`) e o valor atual da contagem (`q`) no console. A saída é atualizada sempre que houver mudanças nos sinais monitorados.
+
+Arquivo `sim_main_0_13.cpp`:
+
+```cpp
+#include "Vcontador_0_13.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char** argv, char** env) {
+    Verilated::commandArgs(argc, argv);
+    Vcontador_0_13* top = new Vcontador_0_13;
+
+    // Configuração inicial
+    top->clk = 0;
+    top->rst_n = 0;
+
+    // Constantes
+    const double clock_frequency = 100e6; // Frequência do clock (100 MHz)
+    const int max_cycles = 300; // Número de ciclos a simular
+
+    // Reset
+    top->eval();
+    top->rst_n = 1;
+
+    // Cabeçalho da saída
+    std::cout << "Ciclo\tContagem\tPinos (Q3 Q2 Q1 Q0)\tFreq (Q3)\n";
+    std::cout << "----------------------------------------------------\n";
+
+    // Simulação por max_cycles ciclos
+    for (int cycle = 0; cycle < max_cycles; ++cycle) {
+        // Alterna o clock
+        top->clk = !top->clk;
+        top->eval();
+
+        // Apenas no flanco de subida do clock, exibe os valores
+        if (top->clk) {
+            // Calcula a frequência de Q3
+            double q3_frequency = clock_frequency / 14;
+
+            // Exibe o ciclo, contagem, estado dos pinos e frequência
+            std::cout << std::setw(5) << cycle / 2 // Ciclo completo
+                      << "\t" << std::setw(8) << static_cast<int>(top->q)
+                      << "\t\t" << (int)((top->q >> 3) & 1) << " "
+                      << (int)((top->q >> 2) & 1) << " "
+                      << (int)((top->q >> 1) & 1) << " "
+                      << (int)(top->q & 1)
+                      << "\t\t" << q3_frequency / 1e6 << " MHz\n";
+        }
+    }
+
+    delete top;
+    return 0;
+}
+```
+
+**O que o código faz?**
+
+O programa, chamado `sim_main.cpp`, é um simulador que utiliza a classe `Vcontador_0_13`, gerada pelo Verilator a partir do módulo Verilog `contador_0_13`. Ele executa uma simulação com 300 ciclos de clock e monitora o comportamento do contador, especialmente como ele reseta automaticamente ao atingir o valor 13.
+
+1. **Criação do objeto simulador:** Uma instância de `Vcontador_0_13` é criada como `top` para representar o módulo Verilog.
+2. **Inicialização dos sinais:** 
+   - `clk` (clock) é inicializado com `0`.
+   - `rst_n` (reset ativo em nível baixo) é inicializado com `0`.
+3. **Reset inicial:** O método `eval()` é chamado para calcular o estado inicial do módulo. O reset é então desativado (`rst_n = 1`) para permitir que o contador funcione.
+4. **Frequência do clock:** Definida como `100 MHz` (`100e6`) para simular um sistema com esta frequência.
+5. **Número máximo de ciclos:** Limitado a `300` para controlar a duração da simulação.
+
+Antes de iniciar a simulação, o programa imprime um cabeçalho formatado no console. Este cabeçalho inclui:
+
+- O número do ciclo completo.
+- O valor atual do contador (`q`) em decimal.
+- O estado de cada pino de saída (`q3`, `q2`, `q1`, `q0`) em binário.
+- A frequência correspondente ao bit mais significativo (`q3`).
+
+O programa utiliza um laço `for` para simular o contador por 300 ciclos. A cada iteração:
+
+1. **Alterna o sinal de clock (`clk`):** O clock muda de 0 para 1 ou de 1 para 0 a cada ciclo.
+2. **Avalia o estado do módulo:** O método `eval()` é chamado para recalcular o estado interno do módulo.
+3. **Exibe os resultados no flanco de subida:** Quando o clock está em nível alto (`if (top->clk)`), os resultados são calculados e exibidos no console.
+
+A frequência de `Q3` (bit mais significativo) é calculada com base na frequência do clock dividida por 14, pois `Q3` completa um ciclo completo (de 0 a 1 e volta a 0) a cada 14 incrementos do contador.
+
+Após a simulação dos 300 ciclos, o objeto `top` é destruído para liberar recursos alocados.
+
+## 03_contador_sync
