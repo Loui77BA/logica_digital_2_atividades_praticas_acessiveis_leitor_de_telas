@@ -1274,4 +1274,152 @@ endmodule
   - Usa `$display` para registrar os valores de entrada e saída no console, junto com o tempo simulado.
   - Finaliza a simulação com `$finish`.
 
-  ## 05_led_com_dois_push_bottom
+## 05_led_com_dois_push_bottom
+
+Este projeto expande o circuito do projeto anterior para incluir dois botões como entradas. O LED é aceso apenas se ambos os botões forem pressionados simultaneamente.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire pino2,       // Primeiro botão
+    input wire pino3,       // Segundo botão
+    output reg pino13       // Saída conectada ao LED
+);
+
+always @(*) begin
+    if (pino2 && pino3)     // LED ligado apenas se ambos os botões forem pressionados
+        pino13 = 1'b1;
+    else
+        pino13 = 1'b0;
+end
+
+endmodule
+```
+
+- Simula um circuito lógico com duas entradas (`pino2`, `pino3`) e uma saída (`pino13`). acende um LED (`pino13`) apenas quando dois botões (`pino2` e `pino3`) são pressionados simultaneamente.
+- Usa uma operação lógica `AND` para verificar se ambos os botões estão pressionados.
+- Usa uma condição `if` para verificar se ambas as entradas estão em nível alto.
+- Saída (`pino13`) é configurada para nível alto (`1'b1`) somente quando `pino2` e `pino3` são altos.
+
+**`sim_main.cpp`**
+   
+   ```cpp
+#include <verilated.h>
+#include "Vcircuito.h"
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+
+    // Instancia o circuito
+    Vcircuito *uut = new Vcircuito;
+
+    // Cabeçalho da saída
+    printf("Simulação do circuito (Dois botões):\n");
+    printf("Tempo | pino2 | pino3 | pino13 | Estado do LED\n");
+
+    // Cenário 1: Nenhum botão pressionado
+    uut->pino2 = 0;
+    uut->pino3 = 0;
+    uut->eval();
+    printf("0     | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 2: Apenas o botão 1 pressionado
+    uut->pino2 = 1;
+    uut->pino3 = 0;
+    uut->eval();
+    printf("10    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 3: Apenas o botão 2 pressionado
+    uut->pino2 = 0;
+    uut->pino3 = 1;
+    uut->eval();
+    printf("20    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 4: Ambos os botões pressionados
+    uut->pino2 = 1;
+    uut->pino3 = 1;
+    uut->eval();
+    printf("30    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Finaliza a simulação
+    delete uut;
+    return 0;
+}
+   ```
+- Avalia e imprime o estado do LED para diferentes combinações de estados dos dois botões.
+- Simula os seguintes cenários:
+   - Nenhum botão pressionado (`pino2 = 0`, `pino3 = 0`).
+   - Apenas o primeiro botão pressionado (`pino2 = 1`, `pino3 = 0`).
+   - Apenas o segundo botão pressionado (`pino2 = 0`, `pino3 = 1`).
+   - Ambos os botões pressionados (`pino2 = 1`, `pino3 = 1`).
+- Usa funções da biblioteca Verilator para avaliar o estado do circuito e imprime os resultados no console.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+
+// Declaração dos sinais de teste
+reg pino2, pino3;
+wire pino13;
+
+// Instancia o circuito
+circuito uut (
+    .pino2(pino2),
+    .pino3(pino3),
+    .pino13(pino13)
+);
+
+initial begin
+    // Cabeçalho da simulação
+    $display("Simulação do circuito (Dois botões):");
+    $display("Tempo | pino2 | pino3 | pino13 | Estado do LED");
+
+    // Cenário 1: Nenhum botão pressionado
+    pino2 = 0; pino3 = 0;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 2: Apenas o botão 1 pressionado
+    pino2 = 1; pino3 = 0;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 3: Apenas o botão 2 pressionado
+    pino2 = 0; pino3 = 1;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 4: Ambos os botões pressionados
+    pino2 = 1; pino3 = 1;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    $display("Fim da simulação.");
+    $finish;
+end
+
+endmodule
+```
+
+- Gera sinais de teste para as entradas (`pino2`, `pino3`) e monitora a saída (`pino13`).
+- Testa os mesmos cenários descritos no arquivo `sim_main.cpp` (nenhum botão pressionado, apenas o primeiro botão pressionado, apenas o segundo botão pressionado e ambos os botões pressionados).
+- Usa `$display` para registrar o estado do LED para cada combinação de entrada.
+- Finaliza a simulação com `$finish`.
+
+## 06_led_liga_com_um_dos_push_bottom_pressionado
