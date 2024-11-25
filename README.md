@@ -846,3 +846,432 @@ A frequência de `Q3` (bit mais significativo) é calculada com base na frequên
 Após a simulação dos 300 ciclos, o objeto `top` é destruído para liberar recursos alocados.
 
 ## 03_contador_sync
+
+Elabore um contador síncrono do seguinte diagrama de estados: (os estados que faltam considerem que todos vão para 1).
+
+![A imagem mostra um grafo orientado composto por cinco nós, conectados por setas que indicam a direção das relações entre eles. Os nós são representados por círculos e elipses com bordas brancas e preenchimento marrom. Cada nó contém um número centralizado que o identifica. Abaixo estão os detalhes da estrutura: O nó 1 está conectado ao nó 7 através de uma seta direcionada para a direita. O nó 7 está conectado ao nó 8 por uma seta direcionada para a direita. O nó 8 está conectado ao nó 10 por uma seta direcionada para a direita. O nó 10 está conectado ao nó 11 por uma seta direcionada para a esquerda. O nó 11 está conectado ao nó 1 através de uma seta direcionada para a esquerda. A estrutura forma um ciclo direcionado com conexões adicionais, caracterizando uma rede fechada de relações.](image.png)
+
+**Identificação dos estados e transições**
+
+No diagrama, os estados são:
+
+- 1
+- 7
+- 8
+- 10
+- 11
+
+As transições entre os estados são:
+
+- 1 → 7
+- 7 → 8
+- 8 → 10
+- 10 → 11
+- 11 → 1
+
+**Designação dos estados em binário**
+
+Para representar os estados em binário e utilizar Flip-Flops para criar o contador, vamos atribuir um código binário para cada estado. Como temos cinco estados distintos, precisamos de pelo menos 3 bits:
+
+| Estado Decimal | Estado | Binário |
+|----------------|--------|---------|
+| 1              | 1      | 001     |
+| 7              | 7      | 111     |
+| 8              | 8      | 000     |
+| 10             | 10     | 010     |
+| 11             | 11     | 011     |
+
+**Configuração dos Flip-Flops JK**
+
+Como vamos usar Flip-Flops JK, precisamos criar a tabela de transições e definir as entradas $J$ e $K$ para cada Flip-Flop para que eles alterem seu estado conforme o diagrama.
+
+**Tabela de transição dos estados**
+
+| Estado Atual | Próximo Estado | Q2 Atual | Q1 Atual | Q0 Atual | Q2 Próx | Q1 Próx | Q0 Próx |
+|--------------|----------------|----------|----------|----------|---------|---------|---------|
+| 001          | 111            | 0        | 0        | 1        | 1       | 1       | 1       |
+| 111          | 000            | 1        | 1        | 1        | 0       | 0       | 0       |
+| 000          | 010            | 0        | 0        | 0        | 0       | 1       | 0       |
+| 010          | 011            | 0        | 1        | 0        | 0       | 1       | 1       |
+| 011          | 001            | 0        | 1        | 1        | 0       | 0       | 1       |
+
+**Tabela de transição do contador síncrono**
+
+| Estado Atual (Q2, Q1, Q0) | Próximo Estado (Q2', Q1', Q0') | Q2 Atual | Q1 Atual | Q0 Atual | Q2 Próx | Q1 Próx | Q0 Próx |
+|---------------------------|--------------------------------|----------|----------|----------|---------|---------|---------|
+| 001                       | 111                          | 0        | 0        | 1        | 1       | 1       | 1       |
+| 111                       | 000                          | 1        | 1        | 1        | 0       | 0       | 0       |
+| 000                       | 010                          | 0        | 0        | 0        | 0       | 1       | 0       |
+| 010                       | 011                          | 0        | 1        | 0        | 0       | 1       | 1       |
+| 011                       | 001                          | 0        | 1        | 1        | 0       | 0       | 1       |
+
+**Tabela de transição com entradas $J$ e $K$ para Flip-Flops**
+
+| Estado Atual (Q2, Q1, Q0) | Próximo Estado (Q2', Q1', Q0') | Q2 Atual | Q1 Atual | Q0 Atual | Q2 Próx | Q1 Próx | Q0 Próx | J2 | K2 |
+|---------------------------|--------------------------------|----------|----------|----------|---------|---------|---------|----|----|
+| 001                       | 111                          | 0        | 0        | 1        | 1       | 1       | 1       | 1  | 0  |
+| 111                       | 000                          | 1        | 1        | 1        | 0       | 0       | 0       | 0  | 1  |
+| 000                       | 010                          | 0        | 0        | 0        | 0       | 1       | 0       | 1  | 1  |
+| 010                       | 011                          | 0        | 1        | 0        | 0       | 1       | 1       | 1  | 1  |
+| 011                       | 001                          | 0        | 1        | 1        | 0       | 0       | 1       | 1  | 1  |
+
+**Configuração do circuito**
+
+Com essas configurações, é possível implementar o contador síncrono usando Flip-Flops JK para seguir a sequência de estados indicada no diagrama.
+
+1. **Conecte as entradas $J$ e $K$ de cada Flip-Flop** de acordo com os valores da tabela para alternar entre os estados.
+2. **Configure o contador para resetar** para o estado 1 (001) caso algum estado ausente ou inválido seja detectado.
+
+### Apresentação e Explicação do código Verilog
+
+A estrutura do nosso projeto 02_contador_0_a_13 é composta por:
+
+```bash
+ls
+Makefile  sim  src
+ls sim/
+sim_main.cpp  testbench_sync.v
+ls src/
+contador_sync.v
+```
+
+Arquivo `contador_sync.v`:
+
+```verilog
+`timescale 1ns/1ps
+module contador_sync (
+    input wire clk,      // Clock
+    input wire rst_n,    // Reset ativo em nível baixo
+    output reg [2:0] q   // Saída de 3 bits (Q2, Q1, Q0)
+);
+    // Próximo estado do contador
+    reg [2:0] next_state;
+
+    // Lógica de transição de estados
+    always @(*) begin
+        case (q)
+            3'b001: next_state = 3'b111; // Estado 1 -> Estado 7
+            3'b111: next_state = 3'b000; // Estado 7 -> Estado 8
+            3'b000: next_state = 3'b010; // Estado 8 -> Estado 10
+            3'b010: next_state = 3'b011; // Estado 10 -> Estado 11
+            3'b011: next_state = 3'b001; // Estado 11 -> Estado 1
+            default: next_state = 3'b001; // Estados inválidos retornam para 1
+        endcase
+    end
+
+    // Atualização dos estados no flanco de subida do clock ou reset
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            q <= 3'b001; // Reset: retorna ao estado inicial (1)
+        else
+            q <= next_state; // Atualiza para o próximo estado
+    end
+endmodule
+```
+
+**O que o código faz?**
+
+O módulo `contador_sync` é projetado para realizar transições síncronas de estados entre valores específicos, definidos pela lógica de transição no bloco `always`.
+
+- **Entradas:**
+  - `clk`: Sinal de clock que sincroniza a transição de estados.
+  - `rst_n`: Sinal de reset ativo em nível baixo que retorna o contador ao estado inicial.
+- **Saída:**
+  - `q`: Registrador de 3 bits que mantém o estado atual do contador.
+- **Variável Auxiliar:**
+  - `next_state`: Registrador de 3 bits usado para armazenar o próximo estado do contador. Ele é calculado com base no estado atual (`q`) e atualizado a cada ciclo de clock.
+
+  O bloco `always @(*)` descreve a lógica combinacional para determinar o próximo estado (`next_state`) com base no estado atual (`q`). 
+
+**Sequência de Estados:**
+
+1. Estado `001` (1) → `111` (7)
+2. Estado `111` (7) → `000` (8)
+3. Estado `000` (8) → `010` (10)
+4. Estado `010` (10) → `011` (11)
+5. Estado `011` (11) → `001` (1)
+6. Qualquer estado inválido retorna para `001` (1).
+
+O bloco `always @(posedge clk or negedge rst_n)` descreve a lógica sequencial que atualiza o estado atual (`q`):
+
+1. **Reset Assíncrono:** Se `rst_n` for levado a nível baixo, o estado é forçado para `3'b001` (estado inicial).
+2. **Transição de Estados:** Se o reset não estiver ativo (`rst_n` em nível alto), o estado atual (`q`) é atualizado com o próximo estado (`next_state`), calculado previamente.
+
+Arquivo `sim/testbench_sync.v`:
+
+```verilog
+`timescale 1ns/1ps
+module testbench_sync;
+    reg clk;
+    reg rst_n;
+    wire [2:0] q;
+
+    // Instancia o módulo do contador síncrono
+    contador_sync uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .q(q)
+    );
+
+    // Clock auxiliar para simulação
+    initial clk = 0;
+    always begin
+        #5 clk <= ~clk; // Usa atribuição não bloqueante
+    end
+
+    initial begin
+        // Inicializa os sinais
+        clk = 0;
+        rst_n = 0;
+
+        // Aplica o reset
+        #10;
+        rst_n = 1;
+
+        // Simula por 200 ns
+        #200;
+        $finish;
+    end
+
+    // Monitora as transições dos estados
+    initial begin
+        $monitor("Tempo: %0t | Estado Atual: %b", $time, q);
+    end
+endmodule
+```
+
+**O que o código faz?**
+
+O módulo `testbench_sync` é utilizado para testar o comportamento do módulo `contador_sync`. Ele faz a instância do módulo `contador_sync` como Unidade Sob Teste (Unit Under Test, `uut`), fornecendo estímulos como clock (`clk`) e reset (`rst_n`) enquanto monitora a saída (`q`).
+
+Os sinais declarados são:
+
+- **`clk`**: Registrador usado para o sinal de clock, que alterna periodicamente e controla a transição de estados.
+- **`rst_n`**: Registrador usado para o reset ativo em nível baixo, que inicializa o contador ao estado inicial.
+- **`q`**: Fio (`wire`) conectado à saída do módulo `contador_sync`, representando o estado atual do contador.
+
+O sinal de clock (`clk`) é gerado usando um bloco `initial` e um bloco `always`:
+
+1. O clock começa em `0` no início da simulação.
+2. O bloco `always` alterna o valor de `clk` a cada 5 nanosegundos, criando um clock com período de 10 nanosegundos (frequência de 100 MHz).
+
+Um bloco `initial` descreve os estímulos para o teste:
+
+1. Inicializa os sinais:
+   - O clock (`clk`) começa em `0`.
+   - O reset (`rst_n`) também é inicializado em `0` (ativo).
+2. Após 10 nanosegundos, o reset é desativado (`rst_n = 1`), permitindo que o contador funcione.
+3. A simulação é executada por 200 nanosegundos antes de ser finalizada com `$finish`.
+
+Um segundo bloco `initial` utiliza `$monitor` para exibir no console o tempo simulado (`$time`) e o estado atual do contador (`q`). Isso é útil para observar as transições de estados durante a simulação.
+
+Arquivo `sim_main.cpp`:
+
+```cpp
+#include "Vcontador_sync.h"       // Arquivo gerado pelo Verilator para o módulo Verilog
+#include "verilated.h"            // Biblioteca principal do Verilator
+
+int main(int argc, char** argv) {
+    Verilated::commandArgs(argc, argv);  // Processa argumentos do Verilator
+    Vcontador_sync* top = new Vcontador_sync;  // Instancia o módulo Verilog
+
+    // Inicializa os sinais
+    top->clk = 0;
+    top->rst_n = 0;
+
+    // Realiza o reset
+    top->eval();
+    top->rst_n = 1;
+
+    // Cabeçalho para exibição
+    printf("Ciclo\tQ2\tQ1\tQ0\tEstado Atual\n");
+    printf("-------------------------------------------------\n");
+
+    // Simula 100 ciclos de clock
+    for (int i = 0; i < 100; ++i) {
+        // Gera os flancos do clock
+        top->clk = !top->clk;
+        top->eval();  // Avalia o módulo Verilog
+
+        // Exibe os estados no terminal
+        if (top->clk) {
+            printf("%d\t%d\t%d\t%d\t%b%b%b\n", 
+                   i / 2,                      // Ciclo
+                   (top->q >> 2) & 1,         // Pino Q2
+                   (top->q >> 1) & 1,         // Pino Q1
+                   top->q & 1,                // Pino Q0
+                   (top->q >> 2) & 1,         // Estado Atual: Q2
+                   (top->q >> 1) & 1,         // Estado Atual: Q1
+                   top->q & 1                 // Estado Atual: Q0
+            );
+        }
+    }
+
+    delete top;  // Limpa a memória
+    return 0;
+}
+```
+
+**O que o código faz?**
+
+O programa é uma simulação baseada no modelo C++ gerado pelo Verilator a partir do módulo `contador_sync`. Ele executa 100 ciclos de clock e imprime os valores dos bits de saída (`Q2`, `Q1`, `Q0`) e o estado atual do contador no console.
+
+**Configuração Inicial**
+
+1. **Instanciação do módulo simulador:**
+   - `Vcontador_sync* top` cria uma instância do módulo `contador_sync`, que foi traduzido para C++ pelo Verilator.
+2. **Inicialização dos sinais:**
+   - `clk`: Sinal de clock, começa em `0`.
+   - `rst_n`: Sinal de reset ativo em nível baixo, também inicializado como `0` (ativo).
+
+**Reset Inicial**
+
+O programa realiza um reset inicial para configurar o contador no estado inicial. Após o reset, `rst_n` é definido como `1` para desativar o reset e permitir que o contador inicie sua sequência de estados.
+
+Antes de iniciar a simulação, o programa imprime um cabeçalho no console para organizar a exibição dos resultados. Os campos incluem:
+
+- **Ciclo:** Número do ciclo simulado.
+- **`Q2`, `Q1`, `Q0`:** Estados individuais dos bits de saída.
+- **Estado Atual:** Representação completa do estado do contador.
+
+O programa utiliza um laço `for` para simular 100 ciclos de clock:
+
+1. **Geração do clock:**
+   - O sinal `clk` alterna entre `0` e `1` a cada iteração do laço.
+2. **Avaliação do estado:**
+   - O método `eval()` é chamado para calcular o próximo estado do módulo com base no valor atual de `clk`, `rst_n` e outros sinais.
+3. **Exibição no flanco de subida:**
+   - Os valores dos bits de saída (`Q2`, `Q1`, `Q0`) e o estado completo são exibidos apenas quando `clk` está em nível alto.
+
+Após a simulação dos 100 ciclos, o objeto `top` é destruído para liberar a memória alocada.
+
+## 04_acender_led
+
+O projeto descreve, simula e valida o funcionamento de um circuito simples que acende um LED baseado no estado de um botão.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire pino2,       // Entrada conectada ao push-button
+    output reg pino13       // Saída conectada ao LED
+);
+
+always @(*) begin
+    if (pino2)              // Se o pino2 for 5V (nível alto)
+        pino13 = 1'b1;      // LED ligado (nível alto)
+    else
+        pino13 = 1'b0;      // LED desligado (nível baixo)
+end
+
+endmodule
+```
+
+  - Implementa uma lógica combinacional onde a saída (`pino13`) depende do estado da entrada (`pino2`).
+  - Se `pino2` está em nível alto (1), `pino13` também estará em nível alto, indicando que o LED está aceso.
+  - Se `pino2` está em nível baixo (0), `pino13` estará em nível baixo, desligando o LED.
+
+**`sim_main.cpp`**
+
+```cpp
+#include <verilated.h>
+#include "Vcircuito.h"
+#include <string> // Para usar std::string
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+
+    // Instancia o circuito
+    Vcircuito *uut = new Vcircuito;
+
+    // Cabeçalho da saída
+    printf("Simulação do circuito (Entrada -> Saída):\n");
+    printf("Tempo | pino2 | pino13 | Estado do LED\n");
+
+    // Estado inicial: botão não pressionado
+    uut->pino2 = 0;
+    uut->eval();
+    printf("0     | %d     | %d      | %s\n", uut->pino2, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Simula o botão pressionado
+    uut->pino2 = 1;
+    uut->eval();
+    printf("10    | %d     | %d      | %s\n", uut->pino2, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Simula o botão solto novamente
+    uut->pino2 = 0;
+    uut->eval();
+    printf("20    | %d     | %d      | %s\n", uut->pino2, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Finaliza a simulação
+    delete uut;
+    return 0;
+}
+```
+
+  - Simula o circuito modelado no arquivo `circuito.v` e imprime os resultados em diferentes instantes.
+  - Inicializa `pino2` como 0 (botão não pressionado) e avalia `pino13`.
+  - Altera `pino2` para 1 (botão pressionado) e reavalia `pino13`.
+  - Retorna `pino2` para 0 e realiza a avaliação final.
+  - Usa funções da biblioteca Verilator para instanciar e avaliar o circuito.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+
+// Declaração dos sinais de teste
+reg pino2;
+wire pino13;
+
+// Instancia o circuito
+circuito uut (
+    .pino2(pino2),
+    .pino13(pino13)
+);
+
+initial begin
+    // Inicializa os sinais
+    $display("Início da simulação");
+    $display("Tempo | pino2 | pino13");
+    pino2 = 0;
+    #10; // Aguarda 10 unidades de tempo
+    $display("%0t    | %b     | %b", $time, pino2, pino13);
+
+    // Simula o botão pressionado
+    pino2 = 1;
+    #10; // Aguarda 10 unidades de tempo
+    $display("%0t    | %b     | %b", $time, pino2, pino13);
+
+    // Solta o botão
+    pino2 = 0;
+    #10;
+    $display("%0t    | %b     | %b", $time, pino2, pino13);
+
+    $display("Fim da simulação");
+    $finish; // Finaliza a simulação
+end
+
+endmodule
+```
+
+  - Gera sinais de teste (`pino2`) para simular cenários como botão pressionado e não pressionado.
+  - Monitora a saída (`pino13`) em cada cenário.
+  - Usa `$display` para registrar os valores de entrada e saída no console, junto com o tempo simulado.
+  - Finaliza a simulação com `$finish`.
+
+  ## 05_led_com_dois_push_bottom
