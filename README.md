@@ -1423,3 +1423,1744 @@ endmodule
 - Finaliza a simulação com `$finish`.
 
 ## 06_led_liga_com_um_dos_push_bottom_pressionado
+
+Este projeto modela, simula e valida um circuito lógico que acende um LED caso qualquer um dos dois botões seja pressionado.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire pino2,       // Primeiro botão
+    input wire pino3,       // Segundo botão
+    output reg pino13       // Saída conectada ao LED
+);
+
+always @(*) begin
+    if (pino2 || pino3)     // LED ligado se qualquer botão for pressionado
+        pino13 = 1'b1;
+    else
+        pino13 = 1'b0;
+end
+
+endmodule
+```
+
+- Implementa um circuito lógico com duas entradas (`pino2`, `pino3`) e uma saída (`pino13`). O LED é aceso se qualquer um dos botões for pressionado.
+- Usa uma operação lógica `OR` para verificar se pelo menos um dos botões está pressionado.
+- Usa uma condição `if` para verificar se pelo menos uma das entradas está em nível alto.
+- A saída (`pino13`) é configurada para nível alto (`1'b1`) se `pino2` ou `pino3` estiverem em nível alto.
+
+**`sim_main.cpp`**
+
+```cpp
+#include <verilated.h>
+#include "Vcircuito.h"
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+
+    // Instancia o circuito
+    Vcircuito *uut = new Vcircuito;
+
+    // Cabeçalho da saída
+    printf("Simulação do circuito (Ou um botão ou outro):\n");
+    printf("Tempo | pino2 | pino3 | pino13 | Estado do LED\n");
+
+    // Cenário 1: Nenhum botão pressionado
+    uut->pino2 = 0;
+    uut->pino3 = 0;
+    uut->eval();
+    printf("0     | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 2: Apenas o botão 1 pressionado
+    uut->pino2 = 1;
+    uut->pino3 = 0;
+    uut->eval();
+    printf("10    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 3: Apenas o botão 2 pressionado
+    uut->pino2 = 0;
+    uut->pino3 = 1;
+    uut->eval();
+    printf("20    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 4: Ambos os botões pressionados
+    uut->pino2 = 1;
+    uut->pino3 = 1;
+    uut->eval();
+    printf("30    | %d     | %d     | %d      | %s\n", uut->pino2, uut->pino3, uut->pino13, uut->pino13 ? "Ligado" : "Desligado");
+
+    // Finaliza a simulação
+    delete uut;
+    return 0;
+}
+```
+
+- Avalia e imprime o estado do LED para diferentes combinações de estados dos dois botões.
+- Simula os seguintes cenários:
+   - Nenhum botão pressionado (`pino2 = 0`, `pino3 = 0`).
+   - Apenas o primeiro botão pressionado (`pino2 = 1`, `pino3 = 0`).
+   - Apenas o segundo botão pressionado (`pino2 = 0`, `pino3 = 1`).
+   - Ambos os botões pressionados (`pino2 = 1`, `pino3 = 1`).
+- Usa funções da biblioteca Verilator para avaliar o estado do circuito e imprime os resultados no console.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+
+// Declaração dos sinais de teste
+reg pino2, pino3;
+wire pino13;
+
+// Instancia o circuito
+circuito uut (
+    .pino2(pino2),
+    .pino3(pino3),
+    .pino13(pino13)
+);
+
+initial begin
+    // Cabeçalho da simulação
+    $display("Simulação do circuito (Ou um botão ou outro):");
+    $display("Tempo | pino2 | pino3 | pino13 | Estado do LED");
+
+    // Cenário 1: Nenhum botão pressionado
+    pino2 = 0; pino3 = 0;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 2: Apenas o botão 1 pressionado
+    pino2 = 1; pino3 = 0;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 3: Apenas o botão 2 pressionado
+    pino2 = 0; pino3 = 1;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    // Cenário 4: Ambos os botões pressionados
+    pino2 = 1; pino3 = 1;
+    #10;
+    $display("%0t    | %b     | %b     | %b      | %s", $time, pino2, pino3, pino13, pino13 ? "Ligado" : "Desligado");
+
+    $display("Fim da simulação.");
+    $finish;
+end
+
+endmodule
+```
+
+- Gera sinais de teste para as entradas (`pino2`, `pino3`) e monitora a saída (`pino13`).
+- Testa os mesmos cenários descritos no arquivo `sim_main.cpp` (nenhum botão pressionado, apenas o primeiro botão pressionado, apenas o segundo botão pressionado e ambos os botões pressionados).
+- Usa `$display` para registrar o estado do LED para cada combinação de entrada.
+- Finaliza a simulação com `$finish`.
+
+## 07_led_quatro_pulsos
+
+O projeto simula um circuito que detecta mudanças de estado em um botão, utiliza um contador para contar os pulsos e acende um LED no quarto pulso. 
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,          // Relógio para sincronizar a contagem
+    input wire reset,        // Reset para reiniciar o contador
+    input wire botao,        // Entrada do botão
+    output reg led,          // Saída conectada ao LED
+    output reg [2:0] contador_out // Exposição do contador para depuração
+);
+
+    reg botao_anterior;      // Estado anterior do botão
+    reg [2:0] contador;      // Contador de 3 bits (0 a 7)
+
+    initial begin
+        botao_anterior = 0;
+        contador = 0;
+        led = 0;
+    end
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            contador <= 0;
+            botao_anterior <= 0;
+            led <= 0;
+        end else begin
+            // Detecta borda de subida do botão (0 -> 1)
+            if (botao && !botao_anterior) begin
+                contador <= contador + 1; // Incrementa o contador
+            end
+
+            // Atualiza o estado anterior do botão
+            botao_anterior <= botao;
+
+            // Liga o LED exatamente no 4º pulso
+            if (contador == 4) begin
+                led <= 1;       // Liga o LED
+                contador <= 0;  // Reseta o contador
+            end else begin
+                led <= 0;       // Mantém o LED desligado
+            end
+        end
+
+        // Atualiza a saída do contador para depuração
+        contador_out <= contador;
+    end
+
+endmodule
+```
+
+- Define o módulo circuito que implementa um contador controlado por clock.
+- Detecta mudanças de estado em um botão e acende o LED no quarto pulso.
+- Contador de 3 bits (contador) armazena o número de pulsos do botão.
+- O LED (led) é ativado no quarto pulso e o contador é reiniciado.
+- O estado anterior do botão (botao_anterior) é armazenado para detectar bordas de subida.
+- Inclui um reset para reinicializar o circuito.
+
+**`sim_main.cpp`**
+
+```cpp
+#include <verilated.h>
+#include "Vcircuito.h"
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+
+    // Instancia o circuito
+    Vcircuito *uut = new Vcircuito;
+
+    // Inicializa os sinais
+    uut->clk = 0;
+    uut->reset = 1;
+    uut->botao = 0;
+
+    printf("=========================================================\n");
+    printf("Simulação do circuito (Detecção de Mudança de Estado):\n");
+    printf("Tempo | Botao | Contador | LED | Estado do LED\n");
+    printf("=========================================================\n");
+
+    // Reseta o circuito
+    uut->eval();
+    uut->reset = 0;
+
+    for (int i = 0; i < 40; i++) {
+        // Simula pulsos do botão (pressiona e solta)
+        if (i % 8 == 0) {
+            uut->botao = 1; // Pressiona o botão
+        } else if (i % 8 == 2) {
+            uut->botao = 0; // Solta o botão
+        }
+
+        // Alterna o clock
+        uut->clk = !uut->clk;
+        uut->eval();
+
+        // Verifica o estado do LED
+        const char* estado_led = uut->led ? "ACESO" : "apagado";
+
+        // Imprime os estados do botão, contador e LED
+        printf("%2d    |   %d   |    %d     |  %d  | %s\n", 
+               i, uut->botao, uut->contador_out, uut->led, estado_led);
+
+        // Destaque para o LED aceso
+        if (uut->led) {
+            printf("---------------------------------------------------------\n");
+            printf("LED ACESO no ciclo %d!\n", i);
+            printf("---------------------------------------------------------\n");
+        }
+    }
+
+    delete uut;
+    return 0;
+}
+```
+
+- Alterna o clock, aplica pulsos no botão e exibe os estados do LED e do contador no console.
+- Inicializa o circuito com reset ativo e o botão desligado.
+- Alterna o estado do botão em intervalos regulares para simular pulsos.
+- Exibe o estado do LED e do contador em cada ciclo de clock.
+- Destaca quando o LED acende.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+
+    reg clk;
+    reg reset;
+    reg botao;
+    wire led;
+
+    // Instancia o módulo circuito
+    circuito uut (
+        .clk(clk),
+        .reset(reset),
+        .botao(botao),
+        .led(led)
+    );
+
+    // Gera o sinal de clock
+    always #5 clk = ~clk;
+
+    initial begin
+        // Inicializa os sinais
+        clk = 0;
+        reset = 0;
+        botao = 0;
+
+        $display("Simulação do circuito (Detecção de Mudança de Estado):");
+        $display("Tempo | Botao | LED");
+
+        // Reseta o circuito
+        reset = 1;
+        #10 reset = 0;
+
+        // Simula 8 pulsos do botão
+        repeat (8) begin
+            #10 botao = 1; 
+            #10 botao = 0; // Simula pressão e liberação do botão
+            $display("%0t    | %b     | %b", $time, botao, led);
+        end
+
+        $display("Fim da simulação.");
+        $finish;
+    end
+
+endmodule
+```
+
+- Gera um sinal de clock, aplica pulsos no botão e monitora o estado do LED.
+- Gera um clock contínuo alternando a cada 5 unidades de tempo.
+- Simula 8 pulsos do botão, alternando entre pressionado e solto.
+- Exibe o estado do botão e do LED em cada pulso.
+- Finaliza a simulação com `$finish`.
+
+## 08_barreira_luminosa
+
+Este projeto implementa e simula um sistema que acende um LED quando um objeto é detectado a uma distância de até 8 cm.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_controller.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,                // Clock
+    input wire [7:0] distancia_cm, // Entrada de distância simulada
+    output wire led,               // Saída para o LED
+    output wire objeto_perto       // Exposição do sinal objeto_perto
+);
+    // Instância do sensor de distância
+    sensor_distancia sensor (
+        .distancia_cm(distancia_cm),
+        .objeto_perto(objeto_perto)
+    );
+
+    // Instância do controlador do LED
+    led_controller led_ctrl (
+        .clk(clk),
+        .objeto_perto(objeto_perto),
+        .led(led)
+    );
+endmodule
+```
+
+- Módulo principal que conecta os subsistemas do projeto.
+- Recebe um sinal de distância (`distancia_cm`) e produz as saídas `led` e `objeto_perto`.
+- Passa a distância ao `sensor_distancia` para avaliar se um objeto está próximo.
+- O sinal resultante controla o LED através do `led_controller`.
+- O sinal `objeto_perto` é passado para o controlador do LED.
+- O sinal `led` é a saída final que acende o LED.
+
+**`led_controller.v`**
+
+```verilog
+itor_de_telas/08_barreira_luminosa$ cat src/led_controller.v
+module led_controller (
+    input wire clk,                // Clock
+    input wire objeto_perto,       // Sinal indicando se o objeto está próximo
+    output reg led                 // Saída para o LED
+);
+
+    always @(posedge clk) begin
+        if (objeto_perto) begin
+            led <= 1; // Liga o LED se o objeto estiver próximo
+        end else begin
+            led <= 0; // Desliga o LED caso contrário
+        end
+    end
+endmodule
+```
+
+- Controla o estado do LED com base no sinal `objeto_perto` em bordas positivas do clock.
+- Liga o LED (`led = 1`) se `objeto_perto` for verdadeiro.
+- Desliga o LED (`led = 0`) caso contrário.
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire [7:0] distancia_cm,
+    output reg objeto_perto
+);
+    always @(*) begin
+        objeto_perto = (distancia_cm <= 8) ? 1'b1 : 1'b0;
+    end
+endmodule
+```
+
+- Determina se um objeto está próximo com base na entrada `distancia_cm`.
+- Gera `objeto_perto = 1` se `distancia_cm <= 8`.
+- Caso contrário, `objeto_perto = 0`.
+- O sinal `objeto_perto` é usado para controlar o LED.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream> // Para std::cout
+#include <iomanip>  // Para formatação
+
+int main(int argc, char** argv, char** env) {
+    Verilated::commandArgs(argc, argv);
+
+    // Instância do módulo top-level gerado pelo Verilator
+    Vcircuito* top = new Vcircuito;
+
+    // Tempo de simulação
+    vluint64_t main_time = 0;
+    const vluint64_t sim_time = 1000; // Duração total da simulação
+
+    // Cabeçalho da tabela
+    std::cout << "+------------+---------------+-------------+---------------+" << std::endl;
+    std::cout << "| Tempo (ns) | Distancia_cm  | LED         | Objeto_Perto  |" << std::endl;
+    std::cout << "+------------+---------------+-------------+---------------+" << std::endl;
+
+    // Loop de simulação
+    while (main_time < sim_time) {
+        // Atualiza o clock
+        top->clk = (main_time % 10) < 5;
+
+        // Simula mudanças na distância
+        if (main_time < 200) top->distancia_cm = 20;
+        else if (main_time < 400) top->distancia_cm = 10;
+        else if (main_time < 600) top->distancia_cm = 8;
+        else top->distancia_cm = 5;
+
+        // Avalia o circuito
+        top->eval();
+
+        // Imprime os sinais no terminal
+        if ((main_time % 10) == 0) {
+            std::cout << "| " << std::setw(10) << main_time
+                      << " | " << std::setw(13) << (int)top->distancia_cm
+                      << " | " << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO")
+                      << " | " << std::setw(13) << (top->objeto_perto ? "SIM" : "NÃO")
+                      << " |" << std::endl;
+        }
+
+        // Avança o tempo
+        main_time++;
+    }
+
+    // Rodapé da tabela
+    std::cout << "+------------+---------------+-------------+---------------+" << std::endl;
+
+    // Limpeza
+    delete top;
+    return 0;
+}
+```
+
+- Simulação do módulo `circuito` utilizando Verilator.
+- Imprime os estados de `distancia_cm`, `led` e `objeto_perto` ao longo do tempo.
+- Gera valores simulados para `distancia_cm`.
+- Avalia o circuito em intervalos de tempo e exibe os resultados em uma tabela no console.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire objeto_perto;
+
+    // Instância do circuito
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .objeto_perto(objeto_perto)
+    );
+
+    // Gera o clock
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock de 10 ns
+    end
+
+    // Simula diferentes condições
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 20; #100;  // LED desligado
+        distancia_cm = 10; #100;  // LED desligado
+        distancia_cm = 8;  #100;  // LED ligado
+        distancia_cm = 5;  #100;  // LED ligado
+        distancia_cm = 15; #100;  // LED desligado novamente
+
+        $finish;
+    end
+endmodule
+```
+
+- Simula o comportamento do sistema com diferentes distâncias.
+- Gera um clock de 10 ns e alterna a distância simulada.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação com `$finish`.
+
+## 09_barreira_min_max_10_20_cm
+
+O projeto implementa um sistema que controla um LED com base em valores de distância. Ele usa dois módulos principais, sensor_distancia e led_controller, conectados no módulo circuito. O LED é aceso quando a distância está entre 10 e 20 cm.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_controller.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+    // Conexão entre os módulos
+    wire [7:0] saida_distancia;
+
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia(saida_distancia)
+    );
+
+    led_controller led_ctrl (
+        .clk(clk),
+        .distancia_cm(saida_distancia),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+endmodule
+```
+
+- Módulo principal que conecta os subsistemas do projeto.
+- Recebe um sinal de distância (`distancia_cm`) e produz as saídas `led` e `dentro_limite`.
+- Passa a distância ao `sensor_distancia` para avaliar se um objeto está próximo.
+- Controla o estado do LED e avalia se a distância está dentro de um intervalo permitido (10 a 20 cm).
+- Liga o LED apenas quando a distância está dentro do intervalo definido.
+- Também fornece o sinal `dentro_limite` como saída para indicar se a distância está dentro do intervalo permitido.
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Simula o comportamento de um sensor que atualiza o valor de saída da distância com base na entrada.
+- Atua como um módulo passivo que simplesmente transmite a distância recebida.
+- Atualiza o valor de `saida_distancia` em bordas positivas do clock.
+- O sinal `saida_distancia` é passado para o controlador do LED.
+
+**`led_controller.v`**
+
+```verilog
+module led_controller (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg led,
+    output wire dentro_limite
+);
+    // Define `dentro_limite` como combinacional
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+
+    // Controla o LED
+    always @(posedge clk) begin
+        if (distancia_cm >= 10 && distancia_cm <= 20)
+            led <= 1'b1; // Liga o LED
+        else
+            led <= 1'b0; // Desliga o LED
+    end
+endmodule
+```
+
+- Controla o LED com base no intervalo da distância.
+- Liga o LED (`led = 1`) se a distância estiver entre 10 e 20 cm.
+- Desliga o LED (`led = 0`) caso contrário.
+- Sinaliza se a distância está dentro do intervalo com o sinal `dentro_limite`.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+
+    // Imprime o cabeçalho da tabela
+    std::cout << "+------------+---------------+-------------+---------------+\n";
+    std::cout << "| Tempo (ns) | Distancia_cm  | LED         | Dentro_Limite |\n";
+    std::cout << "+------------+---------------+-------------+---------------+\n";
+
+    while (sim_time < 1000) {
+        // Simula o clock
+        top->clk = (sim_time % 2 == 0);
+
+        // Varia a distância ao longo do tempo
+        if (sim_time < 200) top->distancia_cm = 25;
+        else if (sim_time < 400) top->distancia_cm = 20;
+        else if (sim_time < 600) top->distancia_cm = 15;
+        else if (sim_time < 800) top->distancia_cm = 10;
+        else top->distancia_cm = 5;
+
+        // Avalia o circuito
+        top->eval();
+
+        // Imprime os dados em formato organizado
+        if (sim_time % 10 == 0) {
+            std::cout << "| " << std::setw(10) << sim_time << " | "
+                      << std::setw(13) << static_cast<int>(top->distancia_cm) << " | "
+                      << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO") << " | "
+                      << std::setw(13) << (top->dentro_limite ? "SIM" : "NÃO") << " |\n";
+        }
+
+        sim_time++;
+    }
+
+    // Imprime o rodapé da tabela
+    std::cout << "+------------+---------------+-------------+---------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Varia o valor da distância ao longo do tempo.
+- Exibe o estado do LED e do sinal `dentro_limite` em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+- Finaliza a simulação após 1000 unidades de tempo.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    // Instância do circuito
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    // Gera o clock
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock de 10 ns
+    end
+
+    // Simula diferentes condições
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 25; #100; // Fora do limite, LED desligado
+        distancia_cm = 20; #100; // Dentro do limite, LED ligado
+        distancia_cm = 15; #100; // Dentro do limite, LED ligado
+        distancia_cm = 10; #100; // Dentro do limite, LED ligado
+        distancia_cm = 5;  #100; // Fora do limite, LED desligado
+
+        $finish;
+    end
+endmodule
+```
+
+- Simula o comportamento do sistema com diferentes distâncias.
+- Gera um clock de 10 ns e alterna a distância simulada.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação com `$finish`.
+- Testa se o LED está ligado quando a distância está entre 10 e 20 cm.
+
+## 10_led_pisca_4_segundos
+
+Este projeto é uma extensão de sistemas de controle de LEDs, adicionando um módulo que faz o LED piscar a cada 4 segundos.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_blinker.v  led_controller.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+    // Conexão entre os módulos
+    wire [7:0] saida_distancia;
+    wire led_controlado;
+
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia(saida_distancia)
+    );
+
+    led_controller led_ctrl (
+        .clk(clk),
+        .distancia_cm(saida_distancia),
+        .led(led_controlado),
+        .dentro_limite(dentro_limite)
+    );
+
+    // LED alternando com base no clock de 4 segundos
+    wire led_blink;
+    led_blinker blinker (
+        .clk(clk),
+        .led(led_blink)
+    );
+
+    // Combinação do LED controlado e do LED que pisca
+    assign led = led_controlado | led_blink;
+endmodule
+```
+
+- Módulo principal que integra `sensor_distancia`, `led_controller` e `led_blinker`.
+- Recebe a distância e avalia se está dentro do limite.
+- Gera um LED que pisca alternadamente a cada 4 segundos.
+
+**`led_blinker.v`**
+
+```verilog
+module led_blinker (
+    input wire clk,
+    output reg led
+);
+    // Contador de 16 bits
+    reg [15:0] counter;
+
+    initial begin
+        counter = 0;
+        led = 0;
+    end
+
+    always @(posedge clk) begin
+        if (counter == 16'hFFFF) begin
+            counter <= 0;
+            led <= ~led; // Alterna o estado do LED
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+endmodule
+```
+
+- Módulo que faz o LED piscar a cada 4 segundos.
+- Usa um contador de 16 bits para controlar o tempo.
+- Alterna o estado do LED a cada 65535 ciclos de clock (4 segundos).
+
+**`led_controller.v`**
+
+```verilog
+module led_controller (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg led,
+    output wire dentro_limite
+);
+    // Define dentro_limite como combinacional
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+
+    // Controla o LED
+    always @(posedge clk) begin
+        if (distancia_cm >= 10 && distancia_cm <= 20)
+            led <= 1'b1; // Liga o LED
+        else
+            led <= 1'b0; // Desliga o LED
+    end
+endmodule
+```
+
+- Controla o LED com base no intervalo da distância.
+- Liga o LED (`led = 1`) se a distância estiver entre 10 e 20 cm.
+- Desliga o LED (`led = 0`) caso contrário.
+- Sinaliza se a distância está dentro do intervalo com o sinal `dentro_limite`.
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Atualiza e transmite o valor da distância.
+- Simula um sensor que transfere a entrada distancia_cm para outros módulos.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+#include <string>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+    bool last_led_state = false; // Estado anterior do LED
+
+    // Imprime o cabeçalho da tabela
+    std::cout << "+--------------+--------------+---------------+-------------+---------------+\n";
+    std::cout << "| Tempo (ns)   | Tempo (s)    | Distancia_cm  | LED         | Dentro_Limite |\n";
+    std::cout << "+--------------+--------------+---------------+-------------+---------------+\n";
+
+    while (sim_time < 420000) { // Simula por 4,2 segundos
+        // Simula o clock
+        top->clk = (sim_time % 2 == 0);
+
+        // Varia a distância ao longo do tempo
+        if (sim_time < 20000) top->distancia_cm = 25; // 2 ms
+        else if (sim_time < 40000) top->distancia_cm = 20; // 4 ms
+        else if (sim_time < 60000) top->distancia_cm = 15; // 6 ms
+        else if (sim_time < 80000) top->distancia_cm = 10; // 8 ms
+        else top->distancia_cm = 5;
+
+        // Avalia o circuito
+        top->eval();
+
+        // Detecta mudanças no estado do LED
+        if (sim_time % 1000 == 0) { // Imprime a cada 1000 ns
+            bool current_led_state = top->led;
+
+            // Imprime os dados normais
+            std::cout << "| " << std::setw(12) << std::setfill(' ') << sim_time << " | "
+                      << std::fixed << std::setprecision(9) << std::setw(12) << (sim_time / 1e9) << " | "
+                      << std::setw(13) << static_cast<int>(top->distancia_cm) << " | "
+                      << std::setw(11) << (current_led_state ? "LIGADO" : "DESLIGADO") << " | "
+                      << std::setw(13) << (top->dentro_limite ? "SIM" : "NÃO") << " |\n";
+
+            // Destaca a mudança de estado do LED
+            if (current_led_state != last_led_state) {
+                std::string estado = current_led_state ? "LIGADO" : "DESLIGADO";
+                std::cout << ">>> O LED mudou para " << estado << " no tempo "
+                          << sim_time << " ns (" << std::fixed << std::setprecision(9)
+                          << (sim_time / 1e9) << " segundos) <<<\n";
+                std::cout << "+--------------+--------------+---------------+-------------+---------------+\n";
+            }
+
+            last_led_state = current_led_state;
+        }
+
+        sim_time++;
+    }
+
+    // Imprime o rodapé da tabela
+    std::cout << "+--------------+--------------+---------------+-------------+---------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Simula o comportamento do sistema por 4,2 segundos.
+- Exibe o estado do LED e do sinal `dentro_limite` em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+- Destaca mudanças no estado do LED.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    // Instância do circuito
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    // Gera o clock
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock de 10 ns
+    end
+
+    // Simula diferentes condições
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 25; #100; // Fora do limite, LED desligado
+        distancia_cm = 20; #100; // Dentro do limite, LED ligado
+        distancia_cm = 15; #100; // Dentro do limite, LED ligado
+        distancia_cm = 10; #100; // Dentro do limite, LED ligado
+        distancia_cm = 5;  #100; // Fora do limite, LED desligado
+
+        $finish;
+    end
+endmodule
+```
+
+- Simula o comportamento do sistema com diferentes distâncias.
+- Gera um clock de 10 ns e alterna a distância simulada.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação com `$finish`.
+
+## 11_led_pisca_3_segundos_valor_de_contagem_diferente
+
+Este projeto é uma extensão do projeto anterior, adicionando um contador de 3 bits que controla a frequência de piscamento do LED. O LED pisca a cada 3 segundos e a frequência de piscamento é controlada pelo contador.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_blinker.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Recebe o valor da distância e o transmite para o módulo circuito.
+- Atualiza o valor de saída com cada borda positiva do clock.
+
+**`led_blinker.v`**
+
+```verilog
+module led_blinker (
+    input wire clk,
+    output reg led
+);
+    // Contador ajustado para 150 ciclos
+    reg [7:0] counter; // 8 bits são suficientes para contar até 150
+
+    initial begin
+        counter = 0;
+        led = 0;
+    end
+
+    always @(posedge clk) begin
+        if (counter == 149) begin // Conta até 149, totalizando 150 ciclos
+            counter <= 0;
+            led <= ~led; // Alterna o estado do LED
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+endmodule
+```
+
+- Faz o LED alternar entre ligado e desligado após 150 ciclos de clock.
+- Usa um contador de 8 bits para controlar o tempo.
+- Alterna o estado do LED a cada 150 ciclos de clock (3 segundos).
+- O LED pisca a cada 3 segundos.
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia() // Não conectamos a saída, pois não é usada
+    );
+
+    led_blinker led_ctrl (
+        .clk(clk),
+        .led(led)
+    );
+
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+endmodule
+```
+
+- Módulo principal que integra `sensor_distancia` e `led_blinker`.
+- Recebe a distância e avalia se está dentro do limite.
+- Controla o LED para piscar a cada 3 segundos.
+- O sinal `dentro_limite` indica se a distância está dentro do intervalo permitido.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+
+    // Imprime o cabeçalho da tabela
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+    std::cout << "| Tempo (ns) | Tempo (s) | Distancia_cm  | LED         | Dentro_Limite |\n";
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    while (sim_time < 1000) { // Simula até 10 segundos
+        // Simula o clock com período de 20 ms (cada sim_time é 10 ms)
+        top->clk = (sim_time % 2 == 0);
+
+        // Define a distância fixa para o teste
+        top->distancia_cm = 20;
+
+        // Avalia o circuito
+        top->eval();
+
+        // Imprime os dados em formato organizado
+        if (sim_time % 10 == 0) {
+            double time_in_seconds = sim_time / 100.0;
+            std::cout << "| " << std::setw(10) << sim_time << " | "
+                      << std::setw(8) << std::fixed << std::setprecision(2) << time_in_seconds << " | "
+                      << std::setw(13) << static_cast<int>(top->distancia_cm) << " | "
+                      << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO") << " | "
+                      << std::setw(13) << (top->dentro_limite ? "SIM" : "NÃO") << " |\n";
+        }
+
+        sim_time++;
+    }
+
+    // Imprime o rodapé da tabela
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Simula o comportamento do sistema por 10 segundos.
+- Exibe o estado do LED e do sinal `dentro_limite` em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    // Instância do circuito
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    // Gera o clock com período de 10 ns (5 ns de alta, 5 ns de baixa)
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock de 10 ns
+    end
+
+    // Simula diferentes condições
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 20; // Mantém a distância fixa para simplificar
+        #1000000000; // Tempo suficiente para observar várias mudanças no LED
+        $finish;
+    end
+endmodule
+```
+
+- Simula o comportamento do sistema com uma distância fixa de 20 cm.
+- Gera um clock de 10 ns e mantém a distância constante.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação após 1 segundo (1 bilhão de unidades de tempo).
+
+## 12_led_pisca_3_segundos_valor_divisor_de_frequencia_de_relogio_diferente
+
+Este projeto é uma extensão do projeto anterior, adicionando um divisor de frequência de clock de 3 bits que controla a frequência de piscamento do LED. O LED pisca a cada 3 segundos e a frequência de piscamento é controlada pelo divisor de frequência.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_blinker.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Recebe a entrada `distancia_cm` e a transmite para o módulo `circuito`.
+- Atualiza a saída com cada borda positiva do clock (`clk`).
+
+**`led_blinker.v`**
+
+```verilog
+module led_blinker (
+    input wire clk,
+    output reg led
+);
+    reg [7:0] counter; // Contador de 8 bits para controlar os ciclos
+
+    initial begin
+        counter = 0;
+        led = 0;
+    end
+
+    always @(posedge clk) begin
+        if (counter == 149) begin
+            counter <= 0;
+            led <= ~led; // Alterna o estado do LED
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+endmodule
+```
+
+- Controla o estado do LED, alternando entre ligado e desligado após 150 ciclos de clock.
+- Usa um contador de 8 bits para controlar o tempo.
+- Alterna o estado do LED a cada 150 ciclos de clock (3 segundos).
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia() // Saída não utilizada
+    );
+
+    led_blinker led_ctrl (
+        .clk(clk),
+        .led(led)
+    );
+
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+endmodule
+```
+
+- Integra os módulos `sensor_distancia` e `led_blinker`.
+- Avalia se a distância está dentro do intervalo permitido (`dentro_limite`).
+- Controla o LED para piscar a cada 3 segundos.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+    std::cout << "| Tempo (ns) | Tempo (s) | Distancia_cm  | LED         | Dentro_Limite |\n";
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    while (sim_time < 1000) {
+        top->clk = (sim_time % 2 == 0);
+        top->distancia_cm = 20;
+        top->eval();
+
+        if (sim_time % 10 == 0) {
+            double time_in_seconds = sim_time / 100.0;
+            std::cout << "| " << std::setw(10) << sim_time << " | "
+                      << std::setw(8) << std::fixed << std::setprecision(2) << time_in_seconds << " | "
+                      << std::setw(13) << static_cast<int>(top->distancia_cm) << " | "
+                      << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO") << " | "
+                      << std::setw(13) << (top->dentro_limite ? "SIM" : "NÃO") << " |\n";
+        }
+
+        sim_time++;
+    }
+
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Simula o comportamento do sistema por 10 segundos.
+- Exibe o estado do LED e do sinal `dentro_limite` em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 20;
+        #1000000000;
+        $finish;
+    end
+endmodule
+```
+
+- Simula diferentes condições no sistema, utilizando um clock de 10 ns.
+- Mantém a distância constante em 20 cm.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação após 1 segundo (1 bilhão de unidades de tempo).
+
+## 13_led_pisca_5_segundos_valor_contagem_diferente
+
+Este projeto é uma extensão do projeto anterior, alterando o tempo de piscamento do LED para 5 segundos. O LED pisca a cada 5 segundos e a frequência de piscamento é controlada por um contador de 3 bits.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_blinker.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Recebe como entrada a distância (`distancia_cm`) e a transmite para outros módulos.
+- A saída `saida_distancia` é atualizada a cada borda positiva do clock (`clk`).
+
+**`led_blinker.v`**
+
+```verilog
+module led_blinker (
+    input wire clk,
+    output reg led
+);
+    reg [7:0] counter; // Contador de 8 bits para controlar o tempo
+
+    initial begin
+        counter = 0;
+        led = 0;
+    end
+
+    always @(posedge clk) begin
+        if (counter == 149) begin
+            counter <= 0;
+            led <= ~led; // Alterna o estado do LED
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+endmodule
+```
+
+- Controla o estado do LED, alternando entre ligado e desligado após 150 ciclos de clock (5 segundos).
+- Utiliza um contador de 8 bits para controlar o tempo.
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia() // Saída não conectada
+    );
+
+    led_blinker led_ctrl (
+        .clk(clk),
+        .led(led)
+    );
+
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+endmodule
+```
+
+- Integra os módulos `sensor_distancia` e `led_blinker`.
+- Avalia se a distância está dentro de um intervalo permitido (`dentro_limite`).
+- Controla o LED para piscar de acordo com o módulo `led_blinker`.
+- O LED pisca a cada 5 segundos.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+    std::cout << "| Tempo (ns) | Tempo (s) | Distancia_cm  | LED         | Dentro_Limite |\n";
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    while (sim_time < 1000) {
+        top->clk = (sim_time % 2 == 0);
+        top->distancia_cm = 20;
+        top->eval();
+
+        if (sim_time % 10 == 0) {
+            double time_in_seconds = sim_time / 100.0;
+            std::cout << "| " << std::setw(10) << sim_time << " | "
+                      << std::setw(8) << std::fixed << std::setprecision(2) << time_in_seconds << " | "
+                      << std::setw(13) << static_cast<int>(top->distancia_cm) << " | "
+                      << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO") << " | "
+                      << std::setw(13) << (top->dentro_limite ? "SIM" : "NÃO") << " |\n";
+        }
+
+        sim_time++;
+    }
+
+    std::cout << "+------------+----------+---------------+-------------+---------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Simula o comportamento do sistema por 10 segundos.
+- Exibe o estado do LED e do sinal `dentro_limite` em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+- O LED pisca a cada 5 segundos.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ns/1ps
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 20;
+        #1000000000;
+        $finish;
+    end
+endmodule
+```
+
+- Simula diferentes condições no sistema, utilizando um clock de 10 ns.
+- Mantém a distância constante em 20 cm.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação após 1 segundo (1 bilhão de unidades de tempo).
+- O LED pisca a cada 5 segundos.
+
+## 14_led_pisca_5_segundos_valor_divisor_de_frequencia_de_relogio_diferente
+
+Este projeto é uma extensão do projeto anterior, alterando o divisor de frequência de clock para controlar a frequência de piscamento do LED. O LED pisca a cada 5 segundos e a frequência de piscamento é controlada pelo divisor de frequência.
+
+A estrutura do projeto é composta por:
+
+```bash
+sim/:
+sim_main.cpp  testbench.v
+
+src/:
+circuito.v  led_blinker.v  sensor_distancia.v
+```
+
+**Onde:**
+
+**`sensor_distancia.v`**
+
+```verilog
+module sensor_distancia (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output reg [7:0] saida_distancia
+);
+    always @(posedge clk) begin
+        saida_distancia <= distancia_cm;
+    end
+endmodule
+```
+
+- Recebe a entrada `distancia_cm` e a transmite para o módulo `circuito`.
+- Atualiza a saída `saida_distancia` com cada borda positiva do clock (`clk`).
+- Simula um sensor que transmite a distância para outros módulos.
+- Atualiza a saída com base no clock.
+- A saída é passada para o módulo `circuito`.
+
+**`led_blinker.v`**
+
+```verilog
+module led_blinker (
+    input wire clk,
+    output reg led
+);
+    // Contador ajustado para 500 ciclos
+    reg [8:0] counter; // 9 bits são suficientes para contar até 500
+
+    initial begin
+        counter = 0;
+        led = 0;
+    end
+
+    always @(posedge clk) begin
+        if (counter == 499) begin // Conta até 499, totalizando 500 ciclos
+            counter <= 0;
+            led <= ~led; // Alterna o estado do LED
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+endmodule
+```
+
+- Controla o estado do LED, alternando entre ligado e desligado após 500 ciclos de clock (5 segundos).
+- Usa um contador de 9 bits para controlar o tempo.
+- Alterna o estado do LED a cada 500 ciclos de clock (5 segundos).
+- O LED pisca a cada 5 segundos.
+
+**`circuito.v`**
+
+```verilog
+module circuito (
+    input wire clk,
+    input wire [7:0] distancia_cm,
+    output wire led,
+    output wire dentro_limite
+);
+    sensor_distancia sensor (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .saida_distancia() // Não conectamos a saída, pois não é usada
+    );
+
+    led_blinker led_ctrl (
+        .clk(clk),
+        .led(led)
+    );
+
+    assign dentro_limite = (distancia_cm >= 10 && distancia_cm <= 20);
+endmodule
+```
+
+- Integra os módulos `sensor_distancia` e `led_blinker`.
+- Avalia se a distância está dentro do intervalo permitido (`dentro_limite`).
+- Controla o LED para piscar a cada 5 segundos.
+- O LED pisca a cada 5 segundos.
+
+**`sim_main.cpp`**
+
+```cpp
+#include "Vcircuito.h"
+#include "verilated.h"
+#include <iostream>
+#include <iomanip>
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+    Vcircuito *top = new Vcircuito;
+
+    vluint64_t sim_time = 0;
+    bool previous_led_state = false; // Variável para armazenar o estado anterior do LED
+
+    // Imprime o cabeçalho da tabela
+    std::cout << "+------------+----------+-------------+\n";
+    std::cout << "| Tempo (ms) | Tempo (s) | LED         |\n";
+    std::cout << "+------------+----------+-------------+\n";
+
+    while (sim_time < 60000) { // Simula até 60 segundos
+        // Simula o clock com período de 10 ms (clock alterna a cada 5 ms)
+        if (sim_time % 5 == 0) { // Alterna o clock a cada 5 ms
+            top->clk = !top->clk;
+        }
+
+        // Define a distância fixa para o teste
+        top->distancia_cm = 20;
+
+        // Avalia o circuito
+        top->eval();
+
+        // Verifica se o LED mudou de estado
+        if (top->led != previous_led_state) {
+            previous_led_state = top->led;
+
+            // Imprime os dados quando o LED muda de estado
+            double time_in_seconds = sim_time / 1000.0;
+            std::cout << "| " << std::setw(10) << sim_time << " | "
+                      << std::setw(8) << std::fixed << std::setprecision(2) << time_in_seconds << " | "
+                      << std::setw(11) << (top->led ? "LIGADO" : "DESLIGADO") << " |\n";
+        }
+
+        sim_time++;
+    }
+
+    // Imprime o rodapé da tabela
+    std::cout << "+------------+----------+-------------+\n";
+
+    delete top;
+    return 0;
+}
+```
+
+- Simula o comportamento do sistema por 60 segundos.
+- Exibe o estado do LED em uma tabela.
+- Avalia o circuito em intervalos de tempo e exibe os resultados no console.
+- O LED pisca a cada 5 segundos.
+
+**`testbench.v`**
+
+```verilog
+`timescale 1ms/1us
+
+module testbench;
+    reg clk;
+    reg [7:0] distancia_cm;
+    wire led;
+    wire dentro_limite;
+
+    // Instância do circuito
+    circuito uut (
+        .clk(clk),
+        .distancia_cm(distancia_cm),
+        .led(led),
+        .dentro_limite(dentro_limite)
+    );
+
+    // Gera o clock com período de 10 ms (5 ms de alta, 5 ms de baixa)
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock de 10 ms
+    end
+
+    // Simula diferentes condições
+    initial begin
+        $dumpfile("testbench.vcd");
+        $dumpvars(0, testbench);
+
+        distancia_cm = 20; // Mantém a distância fixa para simplificar
+        #15000; // Simula por 15 segundos (15000 ms)
+        $finish;
+    end
+endmodule
+```
+
+- Simula diferentes condições no sistema, utilizando um clock de 10 ms.
+- Mantém a distância constante em 20 cm.
+- Grava os resultados da simulação em um arquivo VCD.
+- Finaliza a simulação após 15 segundos (15000 ms).
+- O LED pisca a cada 5 segundos.
+
+## Conclusão
+
+Este repositório apresenta uma coleção abrangente de projetos práticos em lógica digital, implementados em **Verilog** e simulados com o **Verilator**. Ao longo dos projetos, exploramos diversos conceitos fundamentais, desde contadores síncronos e assíncronos até o controle de LEDs com base em diferentes entradas e condições. Cada projeto foi acompanhado por uma análise detalhada, incluindo tabelas verdade, mapas de Karnaugh, equações lógicas e explicações passo a passo do código.
+
+O foco na acessibilidade, especialmente para pessoas que utilizam leitores de tela, é um dos pontos fortes deste trabalho. Os comentários detalhados e a formatação clara do código facilitam a compreensão dos conceitos e a adaptação para diferentes aplicações.
+
+Além disso, a estrutura organizada e a padronização dos projetos facilitam a navegação e a compreensão dos diferentes tópicos abordados. A inclusão de **Makefiles** e instruções claras para compilação e execução permite que mesmo aqueles com pouca experiência em ambiente Linux possam iniciar rapidamente.
